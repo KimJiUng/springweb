@@ -1,6 +1,6 @@
 package ezenweb.domain;
 
-import lombok.Builder;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,6 +9,8 @@ import javax.persistence.Id;
 
 @Entity
 @Builder
+@Getter@Setter@ToString
+@NoArgsConstructor@AllArgsConstructor
 public class RoomEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
