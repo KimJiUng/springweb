@@ -63,6 +63,8 @@ navigator.geolocation.getCurrentPosition(function(position) {
     kakao.maps.event.addListener(map, 'idle', function () {
         // 클러스터 초기화
         clusterer.clear();
+        // 사이드바에 넣을 html 변수 선언
+        let html = "";
         $.ajax({
             url : '/room/roomlist',
             data : JSON.stringify(map.getBounds()), // 현재 보고 있는 지도 범위 [동서남북 좌표]
@@ -70,25 +72,33 @@ navigator.geolocation.getCurrentPosition(function(position) {
             contentType : 'application/json',
             success : function(data){
                 console.log(data)
-                // 데이터에서 좌표 값을 가지고 마커를 표시합니다
-                // 마커 클러스터러로 관리할 마커 객체는 생성할 때 지도 객체를 설정하지 않습니다
-                // 마커 목록 생성
-                var markers = $(data.positions).map(function(i, position) {
-                    // 마커 하나 생성
-                    var marker = new kakao.maps.Marker({
-                            position : new kakao.maps.LatLng(position.lat, position.lng),
-                            image : markerImage // 마커의 이미지
-                        });
-                        // 마커에 클릭 이벤트를 등록한다 (우클릭 : rightclick)
-                        kakao.maps.event.addListener(marker, 'click', function() {
-                            alert('룸 이름  : '+position.rname);
-                        });
-                        return marker;
-                    // 마커 하나 생성 end
-                });
+                if(data.positions.length == 0){
+                    html += '<div>조건에 맞는 결과가 없습니다.</div>'
+                }else{
+                    // 데이터에서 좌표 값을 가지고 마커를 표시합니다
+                    // 마커 클러스터러로 관리할 마커 객체는 생성할 때 지도 객체를 설정하지 않습니다
+                    // 마커 목록 생성
+                    var markers = $(data.positions).map(function(i, position) {
+                        // 마커 하나 생성
+                        var marker = new kakao.maps.Marker({
+                                position : new kakao.maps.LatLng(position.lat, position.lng),
+                                image : markerImage // 마커의 이미지
+                            });
+                            // 마커에 클릭 이벤트를 등록한다 (우클릭 : rightclick)
+                            kakao.maps.event.addListener(marker, 'click', function() {
+                                alert('룸 이름  : '+position.rname);
+                            });
+                            html += '<div onclick="test('+position.rno+')" class="row"><div class="col-md-6"><img width="100%" src="/upload/'+position.rimg+'"></div><div class="col-md-6"> <div>집 번호 : <span>'+position.rno+'</span></div><div>집 이름 : <span>'+position.rname+'</span></div></div></div>';
 
-                // 클러스터러에 마커들을 추가합니다
-                clusterer.addMarkers(markers);
+                            return marker;
+                        // 마커 하나 생성 end
+                    });
+                    // 클러스터러에 마커들을 추가합니다
+                    clusterer.addMarkers(markers);
+                }
+
+                // 해당 html을 해당 id값에 추가
+                $("#sidebar").html(html);
             }
         });
     });
@@ -109,3 +119,23 @@ navigator.geolocation.getCurrentPosition(function(position) {
 
 
 }); // 현재 내 위치 위도,경도 구하기 end
+
+function test(rno){
+    $.ajax({
+        url : "/room/getroom",
+        data : {"rno" : rno},
+        success : function(data){
+            let html = "";
+            html+= ' <div class="row">'+
+                        '<span>'+data.rname+'</span><br>'+
+                        '<div><img width="100%" src="/upload/'+data.rimg+'"></div>'+
+                        '<div><span>'+data.rtype+'</span></div>'+
+                        '<div><span>'+data.rprice+'</span></div>'+
+                        '<div class="col-md-4"><span>'+data.rarea+'</span></div>'+
+                        '<div class="col-md-4"><span>'+data.radministrativeexpenses+'</span></div>'+
+                        '<div class="col-md-4"><span>'+data.rrescue+'</span></div>'+
+                    '</div>';
+            $("#sidebar").html(html);
+        }
+    })
+}

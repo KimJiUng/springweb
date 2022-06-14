@@ -1,5 +1,6 @@
 package ezenweb.controller;
 
+import ezenweb.domain.RoomEntity;
 import ezenweb.dto.RoomDto;
 import ezenweb.service.RoomService;
 import org.json.JSONArray;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller // 해당 클래스가 템플릿 영역으로 사용
 @RequestMapping("/room")    // 해당 클래스의 요청 매핑(room)
@@ -25,7 +27,7 @@ public class RoomController {
         // templates -> room -> write
     }
 
-    @PutMapping (value = "/write", produces = "application/json; charset=UTF-8")   // 2. 등록처리
+    @PostMapping("/write")   // 2. 등록처리
     @ResponseBody   // 템플릿이 아닌 객체 반환시 사용되는 어노테이션
     public boolean write_save(RoomDto roomDto){
                                 // 요청변수중 DTO 필드와 변수명이 동일할 경우 자동 주입
@@ -64,6 +66,14 @@ public class RoomController {
         System.out.println(location);
         return roomService.room_list(location);
     }
+
+    @GetMapping("/getroom")
+    @ResponseBody
+    public Optional<RoomEntity> room(@RequestParam("rno") int rno){
+        System.out.println(rno);
+        return roomService.getroom(rno);
+    }
+
 
 
 }

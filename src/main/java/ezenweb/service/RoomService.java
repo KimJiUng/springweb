@@ -7,11 +7,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 @Service
 public class RoomService {
@@ -23,10 +22,57 @@ public class RoomService {
     public boolean room_save(RoomDto roomDto){
         // dto -> entity
         RoomEntity roomEntity = RoomEntity.builder()
-                .roomname(roomDto.getRoomname())
+                .rname(roomDto.getRname())
                 .x(roomDto.getX())
                 .y(roomDto.getY())
+                .rtype(roomDto.getRtype())
+                .rprice(roomDto.getRprice())
+                .rarea(roomDto.getRarea())
+                .radministrativeexpenses(roomDto.getRadministrativeexpenses())
+                .rrescue(roomDto.getRrescue())
+                .rcompletiondate(roomDto.getRcompletiondate())
+                .rparking(roomDto.getRparking())
+                .relevator(roomDto.getRelevator())
+                .rmovein(roomDto.getRmovein())
+                .rcurrentfloor(roomDto.getRcurrentfloor())
+                .rallfloor(roomDto.getRallfloor())
+                .rbuildingtype(roomDto.getRbuildingtype())
+                .raddress(roomDto.getRaddress())
+                .rdetail(roomDto.getRdetail())
                 .build();
+
+        String uuidfile = null;
+        // 첨부파일
+        if(roomDto.getRimg().size() !=0){   // 첨부파일이 1개 이상이면
+            // 1. 반복문을 이용한 모든 첨부파일 호출
+            for(MultipartFile file : roomDto.getRimg()){
+
+                // 파일명이 동일하면 식별 문제 발생
+                    // 1. UUID 난수 생성
+                    UUID uuid = UUID.randomUUID();
+                    // 2. UUID + 파일명
+                    uuidfile = uuid.toString()+"_"+file.getOriginalFilename().replaceAll("_","-");
+                    // UUID와 파일명 구분 _ 사용 [만약에 파일명에 _ 존재하면 문제발생 -> 파일명 _ 없애기]
+
+                // 2. 경로설정
+                String dir = "D:\\spring\\springweb\\src\\main\\resources\\static\\upload\\";
+                String filepath = dir + uuidfile;
+                                    // .getOriginalFilename() : 실제 첨부파일 이름
+
+                try{
+                    // 3. ***첨부파일 업로드 처리
+                    file.transferTo(new File(filepath)); // 파일명.transferTo(새로운경로 -> 파일)
+                    // 4. 엔티티에 파일명 저장
+                    roomEntity.setRimg(uuidfile);
+                }catch(Exception e){
+                    System.out.println("파일저장 실패 : "+e);
+                }
+
+
+            }
+        }
+
+
         // 저장
         roomRepository.save(roomEntity);
         return true;
@@ -85,9 +131,11 @@ public class RoomService {
             && Double.parseDouble(roomEntity.getX())>ha && Double.parseDouble(roomEntity.getX())<oa ){
                 // 3. Map 객체 생성
                 Map<String, String> map = new HashMap<>();
-                map.put("rname", roomEntity.getRoomname());
+                map.put("rname", roomEntity.getRname());
                 map.put("lng", roomEntity.getX());
                 map.put("lat", roomEntity.getY());
+                map.put("rno", roomEntity.getRno()+"");
+                map.put("rimg", roomEntity.getRimg());
                 // 4. 리스트에 넣기
                 maplist.add(map);
             }
@@ -98,5 +146,12 @@ public class RoomService {
         System.out.println(object);
         return object;
     }
+
+    // 개별 룸 호출
+    public Optional<RoomEntity> getroom(int rno){
+      return roomRepository.findById(rno);
+    }
+
+
 
 }
