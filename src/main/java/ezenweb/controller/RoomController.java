@@ -9,6 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Map;
 
 @Controller // 해당 클래스가 템플릿 영역으로 사용
 @RequestMapping("/room")    // 해당 클래스의 요청 매핑(room)
@@ -23,7 +25,7 @@ public class RoomController {
         // templates -> room -> write
     }
 
-    @PutMapping(value = "/write", produces = "application/json; charset=UTF-8")   // 2. 등록처리
+    @PutMapping (value = "/write", produces = "application/json; charset=UTF-8")   // 2. 등록처리
     @ResponseBody   // 템플릿이 아닌 객체 반환시 사용되는 어노테이션
     public boolean write_save(RoomDto roomDto){
                                 // 요청변수중 DTO 필드와 변수명이 동일할 경우 자동 주입
@@ -40,18 +42,26 @@ public class RoomController {
         return "room/list";
     }
 
-    @GetMapping("/roomlist")
+    // json 사용시
+   /* @GetMapping("/roomlist")
     @ResponseBody
     public void roomlist(HttpServletResponse response){
 
-        JSONObject jsonObject = roomService.room_list();
+        Map<String, List<Map<String, String>>> roomlist = roomService.room_list();
 
         try{
             response.setCharacterEncoding("UTF-8");
             response.setContentType("application/json");
-            response.getWriter().print(jsonObject);
+            response.getWriter().print(roomlist);
         }catch(Exception e){e.printStackTrace();}
 
+    }*/
+
+    // map 사용시
+    @GetMapping("/roomlist")
+    @ResponseBody
+    public Map<String, List<  Map<String, String> >> roomlist(){
+        return roomService.room_list();
     }
 
 
@@ -60,10 +70,10 @@ public class RoomController {
 
 /*
     --------- @RequestMapping("경로")---------------
-    @GetMapping     : FIND, GET [@RequestMapping("경로", method=RequestMapping)]
-    @PutMapping     : UPDATE    [@RequestMapping("경로", method=RequestMapping)]
-    @PostMapping    : SAVE      [@RequestMapping("경로", method=RequestMapping)]
-    @DeleteMapping  : DELETE    [@RequestMapping("경로", method=RequestMapping)]
+    @GetMapping     : FIND, GET [@RequestMapping("경로", method=RequestMethod.GET)]
+    @PutMapping     : UPDATE    [@RequestMapping("경로", method=RequestMethod.PUT)]
+    @PostMapping    : SAVE      [@RequestMapping("경로", method=RequestMethod.POST)]
+    @DeleteMapping  : DELETE    [@RequestMapping("경로", method=RequestMethod.DELETE)]
 
  */
 
@@ -81,5 +91,16 @@ public class RoomController {
     // 3. Mapping 사용시 DTO로 자동 주입된다.
         // 조건 1. : Mapping 사용해야 한다.
         // 조건 2. : 요청변수명과 DTO 필드명 동일해야 한다.
+
+ */
+
+/*
+    Controller -> view(js)
+        // 1. 해당 클래스가 @RestController 이면 메소드 return 객체
+            vs @Controller 이면 메소드 return 값이 템플릿(html)
+        // 2. HttpServletResponse response
+            response.getWriter().print(객체)
+        // 3. @ResponseBody 메소드 return 객체
+
 
  */
