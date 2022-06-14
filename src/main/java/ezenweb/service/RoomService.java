@@ -66,21 +66,35 @@ public class RoomService {
     */
 
     // 2. Map 사용시
-    public Map<String, List<  Map<String, String> >> room_list() {
+    public Map<String, List<  Map<String, String> >> room_list(Map<String,String> location) {
+
+        // 현재 보고있는 지도 범위
+        double qa = Double.parseDouble(location.get("qa"));
+        double ha = Double.parseDouble(location.get("ha"));
+        double oa = Double.parseDouble(location.get("oa"));
+        double pa = Double.parseDouble(location.get("pa"));
+
         List<  Map<String, String> > maplist = new ArrayList<>();
         // 1. 모든 엔티티 꺼내오기
         List<RoomEntity> roomEntityList = roomRepository.findAll();
         // 2. 엔티티 -> Map 변환
         for(RoomEntity roomEntity : roomEntityList){    // 리스트에서 엔티티 하나씩 꺼내오기
-            // 3. Map 객체 생성
-            Map<String, String> map = new HashMap<>();
-            map.put("rname", roomEntity.getRoomname());
-            map.put("lng", roomEntity.getX());
-            map.put("lat", roomEntity.getY());
-            // 4. 리스트에 넣기
-            maplist.add(map);
+
+            // [조건]location 범위 내 좌표만 저장하기
+            if(Double.parseDouble(roomEntity.getY()) > qa && Double.parseDouble(roomEntity.getY())<pa
+            && Double.parseDouble(roomEntity.getX())>ha && Double.parseDouble(roomEntity.getX())<oa ){
+                // 3. Map 객체 생성
+                Map<String, String> map = new HashMap<>();
+                map.put("rname", roomEntity.getRoomname());
+                map.put("lng", roomEntity.getX());
+                map.put("lat", roomEntity.getY());
+                // 4. 리스트에 넣기
+                maplist.add(map);
+            }
+
         }
         Map<String, List<  Map<String, String> >> object = new HashMap<>();
+        object.put("positions",maplist);
         System.out.println(object);
         return object;
     }

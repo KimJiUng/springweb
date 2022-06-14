@@ -58,10 +58,11 @@ public class RoomController {
     }*/
 
     // map 사용시
-    @GetMapping("/roomlist")
+    @PostMapping("/roomlist")
     @ResponseBody
-    public Map<String, List<  Map<String, String> >> roomlist(){
-        return roomService.room_list();
+    public Map<String, List<  Map<String, String> >> roomlist(@RequestBody Map<String,String> location){
+        System.out.println(location);
+        return roomService.room_list(location);
     }
 
 
@@ -87,6 +88,9 @@ public class RoomController {
     // 2.   @RequestParam("roomname") String roomname,
             @RequestParam("x") String x,
             @RequestParam("y") String y
+
+    // 2-2. JS --JSON--> CONTROLLER
+            @RequestBody
 
     // 3. Mapping 사용시 DTO로 자동 주입된다.
         // 조건 1. : Mapping 사용해야 한다.
