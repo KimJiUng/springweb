@@ -4,13 +4,13 @@
 // 0.현재 내 위치 위도,경도 구하기
 // GeoLocation을 이용해서 접속 위치를 얻어옵니다
 navigator.geolocation.getCurrentPosition(function(position) {
-    var lat = position.coords.latitude, // 위도
-        lng = position.coords.longitude; // 경도
+    var rlat = position.coords.latitude, // 위도
+        rlon = position.coords.longitude; // 경도
 
 
     // 1. Map 변수
  var map = new kakao.maps.Map(document.getElementById('map'), { // 지도를 표시할 div
-        center : new kakao.maps.LatLng(lat, lng), // 지도의 중심좌표 // 현재 접속된 디바이스 좌표
+        center : new kakao.maps.LatLng(rlat, rlon), // 지도의 중심좌표 // 현재 접속된 디바이스 좌표
         level : 5 // 지도의 확대 레벨
     });
 
@@ -81,14 +81,17 @@ navigator.geolocation.getCurrentPosition(function(position) {
                     var markers = $(data.positions).map(function(i, position) {
                         // 마커 하나 생성
                         var marker = new kakao.maps.Marker({
-                                position : new kakao.maps.LatLng(position.lat, position.lng),
+                                position : new kakao.maps.LatLng(position.rlon, position.rlat),
                                 image : markerImage // 마커의 이미지
                             });
+                            console.log(position);
                             // 마커에 클릭 이벤트를 등록한다 (우클릭 : rightclick)
                             kakao.maps.event.addListener(marker, 'click', function() {
-                                alert('룸 이름  : '+position.rname);
+                               $("#roommodalheader").html(position.rtitle);
+                               roommodal(position.rno);
+
                             });
-                            html += '<div onclick="test('+position.rno+')" class="row"><div class="col-md-6"><img width="100%" src="/upload/'+position.rimg+'"></div><div class="col-md-6"> <div>집 번호 : <span>'+position.rno+'</span></div><div>집 이름 : <span>'+position.rname+'</span></div></div></div>';
+                            html += '<div onclick="test('+position.rno+')" class="row"><div class="col-md-6"><img width="100%" src="/upload/'+position.rimg+'"></div><div class="col-md-6"> <div>집 번호 : <span>'+position.rno+'</span></div><div>집 이름 : <span>'+position.rtitle+'</span></div></div></div>';
 
                             return marker;
                         // 마커 하나 생성 end
@@ -125,17 +128,64 @@ function test(rno){
         url : "/room/getroom",
         data : {"rno" : rno},
         success : function(data){
+            console.log(data);
             let html = "";
             html+= ' <div class="row">'+
-                        '<span>'+data.rname+'</span><br>'+
-                        '<div><img width="100%" src="/upload/'+data.rimg+'"></div>'+
+                        '<span>'+data.rtitle+'</span><br>'+
+                        '<div><img onclick="roommodal('+data.rno+')" width="100%" src="/upload/'+data.rimg+'"></div>'+
                         '<div><span>'+data.rtype+'</span></div>'+
                         '<div><span>'+data.rprice+'</span></div>'+
                         '<div class="col-md-4"><span>'+data.rarea+'</span></div>'+
                         '<div class="col-md-4"><span>'+data.radministrativeexpenses+'</span></div>'+
                         '<div class="col-md-4"><span>'+data.rrescue+'</span></div>'+
                     '</div>';
+            $("#roommodalheader").html(data.rtitle);
             $("#sidebar").html(html);
         }
     })
 }
+
+function roommodal(rno){
+    // 해당 모달에 데이터 넣기
+    $.ajax({
+        url : "/room/getroomimg",
+        method : "GET",
+        data : {"rno":rno},
+        contentType : 'application/json',
+        success : function(room){
+
+        console.log(room);
+            // 응답받은 데이터를 모달에 넣기
+            let html = "";
+            html += '<div id="carouselExampleControls" class="carousel slide" data-bs-ride="carousel">'+
+                         '<div class="carousel-inner">';
+            for(let i=0; i<room.length; i++){
+                if(i==0){
+                    html += '<div class="carousel-item active">';
+                }else{
+                    html += '<div class="carousel-item">';
+                }
+                html += '<img src="/upload/'+room[i]["rimg"]+'" class="d-block w-100"></div>';
+            }
+            html += '</div><button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">'+
+                          '<span class="carousel-control-prev-icon" aria-hidden="true"></span>'+
+                          '<span class="visually-hidden">Previous</span>'+
+                      '</button>'+
+                      '<button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">'+
+                          '<span class="carousel-control-next-icon" aria-hidden="true"></span>'+
+                          '<span class="visually-hidden">Next</span>'+
+                      '</button>'+
+                  '</div>';
+            $("#roommodalimg").html(html);
+            // 모달 띄우기
+            $("#roommodalbtn").click();
+        }
+    })
+}
+
+
+
+
+
+
+

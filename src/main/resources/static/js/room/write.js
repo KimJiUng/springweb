@@ -55,9 +55,9 @@ function save(){
 
                          // 해당 주소에 대한 좌표를 받아서
                          var coords = new daum.maps.LatLng(result.y, result.x);
-                            $("#x").val(result.x);
-                            $("#y").val(result.y);
-                         searchAddrFromCoords(coords, callback);
+                            $("#rlat").val(result.x);
+                            $("#rlon").val(result.y);
+
                          // 지도를 보여준다.
                          mapContainer.style.display = "block";
                          map.relayout();

@@ -9,10 +9,10 @@
     <h3>room 등록</h3>
     <form id="saveform">
         <!-- Dto로 자동주입 할 경우에는 input name 과 Dto 필드명 맞추기 -->
-        이름 : <input type="text" name="rname"><br>
+        이름 : <input type="text" name="rtitle"><br>
         사진 : <input type="file" multiple="multiple" name="rimg"><br>
-        <input type="input" hidden="" name="x" id="x">
-        <input type="input" hidden="" name="y" id="y">
+        <input type="input" hidden="" name="rlat" id="rlat">
+        <input type="input" hidden="" name="rlon" id="rlon">
         <input type="button" onclick="sample5_execDaumPostcode()" value="주소 검색"><br>
         <div id="map" style="width:300px;height:300px;margin-top:10px;display:none"></div>
         주소 :<input name="raddress" type="text" id="sample5_address" placeholder="주소"><br>
@@ -27,12 +27,12 @@
         구조 : <input type="text" name="rrescue"><br>
         준공날짜 : <input type="text" name="rcompletiondate"><br>
         주차 여부 : <select id="rparking" name="rparking">
-                    <option value="가능">가능</option>
-                    <option value="불가능">불가능</option>
+                    <option value="true">가능</option>
+                    <option value="false">불가능</option>
                 </select><br>
         엘리베이터 여부 : <select id="relevator" name="relevator">
-                            <option value="가능">가능</option>
-                            <option value="불가능">불가능</option>
+                            <option value="true">가능</option>
+                            <option value="false">불가능</option>
                         </select><br>
         입주가능일 : <input type="text" name="rmovein"><br>
         현재 층 : <input type="text" name="rcurrentfloor"><br>
@@ -41,6 +41,9 @@
         상세설명 : <input type="text" name="rdetail"><br>
         <button type="button" onclick="save()">등록</button><br>
     </form>
+
+
+
 
 
 

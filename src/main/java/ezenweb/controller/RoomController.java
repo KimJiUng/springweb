@@ -1,10 +1,9 @@
 package ezenweb.controller;
 
-import ezenweb.domain.RoomEntity;
+import ezenweb.domain.room.RoomEntity;
 import ezenweb.dto.RoomDto;
 import ezenweb.service.RoomService;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -69,9 +68,20 @@ public class RoomController {
 
     @GetMapping("/getroom")
     @ResponseBody
-    public Optional<RoomEntity> room(@RequestParam("rno") int rno){
-        System.out.println(rno);
+    public Map<String,String> room(@RequestParam("rno") int rno){
         return roomService.getroom(rno);
+    }
+
+    @GetMapping("/getroomimg")
+    @ResponseBody
+    public void getroomimg(@RequestParam("rno") int rno, HttpServletResponse response){
+        JSONArray array = roomService.getroomimg(rno);
+        try{
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(array);
+        }catch(Exception e){e.printStackTrace();}
+
     }
 
 
