@@ -93,4 +93,21 @@ public class MemberService {
         return true;
     }
 
+    // 회원 탈퇴 메소드
+    public boolean mdelete(String mpassword){
+        LoginDto loginDto = (LoginDto)request.getSession().getAttribute("login");
+        if(loginDto==null){
+            return false;
+        }
+        MemberEntity memberEntity = memberRepository.findById(loginDto.getMno()).get();
+        if(memberEntity.getMpassword().equals(mpassword)){
+            memberRepository.delete(memberEntity);
+            return true;
+        }else{
+            return false;
+        }
+
+
+    }
+
 }

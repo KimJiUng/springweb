@@ -14,11 +14,12 @@
     <a href="/">메인</a>    <!-- href="URL" : Controller 클래스내 @GetMapping("URL") -->
     <a th:if="${session.login != null}" href="/room/write">등록</a>
     <a href="/room/list">지도보기</a>
-    <span th:if="${session.login != null}" th:text="${session.login}"></span>
+    <span th:if="${session.login != null}" th:text="${session.login.mid}"></span>
     <a th:if="${session.login == null}" href="/member/signup">회원가입</a>
     <a th:if="${session.login == null}" href="/member/login">로그인</a>
     <a th:if="${session.login != null}" href="/member/logout">로그아웃</a>
     <a th:if="${session.login != null}" href="/member/update">회원정보수정</a>
+    <a th:if="${session.login != null}" href="/member/myroom">내가등록한룸</a>
   <!--부트스트랩-->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
   <!-- jquery 최신 cdn -->

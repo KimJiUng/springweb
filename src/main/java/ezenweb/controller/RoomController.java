@@ -81,7 +81,29 @@ public class RoomController {
             response.setContentType("application/json");
             response.getWriter().print(array);
         }catch(Exception e){e.printStackTrace();}
+    }
 
+
+    @GetMapping("/myroomlist")
+    @ResponseBody
+    public void getmyroom(HttpServletResponse response){
+        JSONArray array = roomService.myroom_list();
+        try{
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(array);
+        }catch(Exception e){e.printStackTrace();}
+    }
+
+    @DeleteMapping("/room_delete")
+    @ResponseBody
+    public boolean room_delete(@RequestParam("rno") int rno){
+        return roomService.room_delete(rno);
+    }
+
+    @PutMapping("/room_update")
+    public void room_update(RoomDto roomDto){
+        System.out.println(roomDto);
     }
 
 

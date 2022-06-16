@@ -1,9 +1,12 @@
 package ezenweb.service;
 
+import ezenweb.domain.member.MemberEntity;
+import ezenweb.domain.member.MemberRepository;
 import ezenweb.domain.room.RoomEntity;
 import ezenweb.domain.room.RoomRepository;
 import ezenweb.domain.room.RoomimgEntity;
 import ezenweb.domain.room.RoomimgRepository;
+import ezenweb.dto.LoginDto;
 import ezenweb.dto.RoomDto;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -11,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.util.*;
@@ -24,15 +28,30 @@ public class RoomService {
     @Autowired
     RoomimgRepository roomimgRepository;
 
+    @Autowired
+    private HttpServletRequest request;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
     // 1. 룸 저장
     @Transactional
     public boolean room_save(RoomDto roomDto){
 
+        // 현재 로그인된 세션 호출
+        LoginDto loginDto = (LoginDto)request.getSession().getAttribute("login");
+        // 현재 로그인된 회원의 엔티티 찾기
+        MemberEntity memberEntity = memberRepository.findById(loginDto.getMno()).get();
        // 1. dto->entity  [ dto는 DB에 저장불가 ]
        RoomEntity roomEntity = roomDto.toentity();
 
        // 2. 저장 [우선적으로 룸 DB에 저장. pk 생성]
        roomRepository.save(roomEntity);
+
+            // 현재 로그인된 회원 엔티티를 룸 엔티티에 저장
+            roomEntity.setMemberEntity(memberEntity);
+            // 현재 로그인된 회원 엔티티내 룸 리스트에 룸 엔티티 추가
+            memberEntity.getRoomEntityList().add(roomEntity);
 
        // 3. 입력받은 첨부파일 저장
         String uuidfile = null;
@@ -195,6 +214,55 @@ public class RoomService {
         return jsonArray;
     }
 
+    // 내가 등록한 룸 리스트 호출
+    public JSONArray myroom_list() {
+        LoginDto loginDto = (LoginDto)request.getSession().getAttribute("login");
+        JSONArray jsonArray = new JSONArray();
+        // 1. 모든 엔티티 꺼내오기
+        List<RoomEntity> roomEntityList = roomRepository.findAll();
+        // 2. 엔티티 -> Map 변환
+        for(RoomEntity roomEntity : roomEntityList){    // 리스트에서 엔티티 하나씩 꺼내오기
+
+            if(loginDto.getMno() == roomEntity.getMemberEntity().getMno() ) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("rno", roomEntity.getRno() + "");
+                jsonObject.put("rtitle", roomEntity.getRtitle());
+                jsonObject.put("rlon", roomEntity.getRlon());
+                jsonObject.put("rlat", roomEntity.getRlat());
+                jsonObject.put("rimg", roomEntity.getRoomimgEntityList().get(0).getRimg());
+                jsonObject.put("rtype", roomEntity.getRtype());
+                jsonObject.put("rprice", roomEntity.getRprice()+"");
+                jsonObject.put("rarea", roomEntity.getRarea());
+                jsonObject.put("radministrativeexpenses", roomEntity.getRadministrativeexpenses()+"");
+                jsonObject.put("rrescue", roomEntity.getRrescue());
+                jsonObject.put("rcompletiondate", roomEntity.getRcompletiondate());
+                jsonObject.put("rparking", roomEntity.isRparking()+"");
+                jsonObject.put("relevator", roomEntity.isRelevator()+"" );
+                jsonObject.put("rmovein", roomEntity.getRmovein());
+                jsonObject.put("rcurrentfloor", roomEntity.getRcurrentfloor()+"");
+                jsonObject.put("rallfloor", roomEntity.getRallfloor()+"");
+                jsonObject.put("rbuildingtype", roomEntity.getRbuildingtype());
+                jsonObject.put("raddress", roomEntity.getRaddress());
+                jsonObject.put("rdetail", roomEntity.getRdetail());
+                jsonObject.put("ractive", roomEntity.getRactive());
+                jsonObject.put("createdate", roomEntity.getCreatedate());
+                jsonObject.put("modifiedate", roomEntity.getModifiedate());
+                // 4. 리스트에 넣기
+                jsonArray.put(jsonObject);
+            }
+        }
+        return jsonArray;
+    }
+
+    // 룸 삭제 메소드
+    public boolean room_delete(int rno){
+        RoomEntity roomEntity = roomRepository.findById(rno).get();
+        if(roomEntity==null){
+            return false;
+        }
+        roomRepository.delete(roomEntity);
+        return true;
+    }
 
 
 }

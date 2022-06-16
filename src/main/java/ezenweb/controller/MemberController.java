@@ -58,8 +58,19 @@ public class MemberController {
     // 7. 회원수정 처리 매핑
     @PutMapping("/update")
     @ResponseBody
-    public boolean memberupdate(@RequestParam String mname){
+    public boolean memberupdate(@RequestParam("mname") String mname){
         return memberService.update(mname);
+    }
+
+    @GetMapping("/myroom")
+    public String myroom(){
+        return "/member/myroom";
+    }
+
+    @DeleteMapping("/mdelete")
+    @ResponseBody
+    public boolean mdelete(@RequestParam("mpassword") String mpassword){
+        return memberService.mdelete(mpassword);
     }
 
 
