@@ -1,12 +1,14 @@
 package ezenweb.domain.member;
 
-import lombok.Builder;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
 @Table(name = "member")
 @Builder
+@Getter@Setter@ToString
+@NoArgsConstructor@AllArgsConstructor
 public class MemberEntity {
 
     @Id

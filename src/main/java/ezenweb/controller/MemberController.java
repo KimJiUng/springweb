@@ -4,32 +4,49 @@ import ezenweb.dto.MemberDto;
 import ezenweb.service.MemberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller // 템플릿 영역
+@RequestMapping("/member")
 public class MemberController {
 
     // 1. 로그인 페이지 이동 매핑
     @GetMapping("/login")
     public String login(){
-        return "login";
+        return "/member/login";
+    }
+
+    // 2. 회원가입 페이지 이동 매핑
+    @GetMapping("/signup")
+    public String signup(){
+        return "/member/write";
     }
 
     @Autowired
     MemberService memberService;    // member 서비스 객체 생성
 
-    // 2. 회원가입 페이지 이동 매핑
-    @GetMapping("/signup")
-    public String signup(){
-        // DTO 생성
-        MemberDto memberDto = MemberDto.builder()
-                .mid("qweqwe")
-                .mpassword("qweqwe")
-                .mname("qweqwe")
-                .build();
+    // 3. 회원가입 처리 매핑
+    @PostMapping("/signup")
+    @ResponseBody
+    public boolean save(MemberDto memberDto){
         // 서비스 호출
-        memberService.signup(memberDto);
-        return "signup";
+        boolean result = memberService.signup(memberDto);
+        return result;
+    }
+
+    // 4.로그인 처리 매핑
+    @PostMapping("/login")
+    @ResponseBody
+    public boolean login(@RequestParam("mid") String mid, @RequestParam("mpassword") String mpassword){
+       return memberService.login(mid,mpassword);
+    }
+
+    // 5. 로그아웃
+    @GetMapping("/logout")
+    public String logout(){
+        memberService.logout();
+        return "main";    // 타임리프 반환
+        //return "redirect:/";    // URL 이동
     }
 
 }

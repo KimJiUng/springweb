@@ -1,5 +1,6 @@
 package ezenweb.dto;
 
+import ezenweb.domain.member.MemberEntity;
 import lombok.*;
 
 @Getter @Setter @ToString
@@ -12,6 +13,15 @@ public class MemberDto {
     private String mid;
     private String mpassword;
     private String mname;
+
+    // DTO -> ENTITY
+    public MemberEntity toentity(){
+        return MemberEntity.builder()   // 빌더패턴 : 포함하지 않는 필드는 0 또는 null 자동 대입
+                .mid(this.mid)
+                .mpassword(this.mpassword)
+                .mname(this.mname)
+                .build();
+    }
 
 
 }
