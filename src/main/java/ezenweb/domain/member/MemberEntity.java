@@ -1,5 +1,6 @@
 package ezenweb.domain.member;
 
+import ezenweb.domain.BaseTime;
 import lombok.*;
 
 import javax.persistence.*;
@@ -9,16 +10,13 @@ import javax.persistence.*;
 @Builder
 @Getter@Setter@ToString
 @NoArgsConstructor@AllArgsConstructor
-public class MemberEntity {
+public class MemberEntity extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int mno;
-
     private String mid;
-
     private String mpassword;
-
     private String mname;
 
 }

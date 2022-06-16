@@ -2,11 +2,13 @@ package ezenweb.service;
 
 import ezenweb.domain.member.MemberEntity;
 import ezenweb.domain.member.MemberRepository;
+import ezenweb.dto.LoginDto;
 import ezenweb.dto.MemberDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
@@ -26,9 +28,13 @@ public class MemberService {
         for(MemberEntity entity : memberEntityList){
             // 3. 아이디와 비밀번호가 동일하면
             if(entity.getMid().equals(mid) && entity.getMpassword().equals(mpassword)){
-
+                LoginDto loginDto = LoginDto.builder()
+                        .mno(entity.getMno())
+                        .mid(entity.getMid())
+                        .mname(entity.getMname())
+                        .build();
                 // 세션 객체 호출
-                request.getSession().setAttribute("login",mid);
+                request.getSession().setAttribute("login",loginDto);
 
                 return true;    // 4. 로그인 성공
             }
@@ -73,5 +79,18 @@ public class MemberService {
         request.getSession().setAttribute("login",null);    // 해당 세션에 null 대입
     }
 
+    // 4. 회원 수정 메소드
+    @Transactional
+    public boolean update(String mname){
+
+        // 세션내 dto 호출
+        LoginDto loginDto = (LoginDto)request.getSession().getAttribute("login");
+        if(loginDto==null){
+            return false;
+        }
+        MemberEntity memberEntity = memberRepository.findById(loginDto.getMno()).get();
+        memberEntity.setMname(mname);
+        return true;
+    }
 
 }

@@ -49,4 +49,18 @@ public class MemberController {
         //return "redirect:/";    // URL 이동
     }
 
+    // 6. 회원수정 경로 매핑
+    @GetMapping("/update")
+    public String update(){
+        return "/member/update";
+    }
+
+    // 7. 회원수정 처리 매핑
+    @PutMapping("/update")
+    @ResponseBody
+    public boolean memberupdate(@RequestParam String mname){
+        return memberService.update(mname);
+    }
+
+
 }
