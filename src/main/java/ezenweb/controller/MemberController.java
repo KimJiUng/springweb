@@ -13,13 +13,13 @@ public class MemberController {
     // 1. 로그인 페이지 이동 매핑
     @GetMapping("/login")
     public String login(){
-        return "/member/login";
+        return "member/login";
     }
 
     // 2. 회원가입 페이지 이동 매핑
     @GetMapping("/signup")
     public String signup(){
-        return "/member/write";
+        return "member/write";
     }
 
     @Autowired
@@ -52,7 +52,7 @@ public class MemberController {
     // 6. 회원수정 경로 매핑
     @GetMapping("/update")
     public String update(){
-        return "/member/update";
+        return "member/update";
     }
 
     // 7. 회원수정 처리 매핑
@@ -64,7 +64,7 @@ public class MemberController {
 
     @GetMapping("/myroom")
     public String myroom(){
-        return "/member/myroom";
+        return "member/myroom";
     }
 
     @DeleteMapping("/mdelete")

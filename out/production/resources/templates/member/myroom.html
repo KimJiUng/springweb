@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div th:replace="header.html::header"></div>
+<h3>내가 등록한 룸</h3>
+<table class="table" id="myroom">
+</table>
+
+
+<!-- Button trigger modal -->
+<button hidden="" id="updatemodalbtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updatemodal"></button>
+
+<!-- Modal -->
+<div class="modal fade" id="updatemodal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">룸 수정</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="saveform">
+                    <!-- Dto로 자동주입 할 경우에는 input name 과 Dto 필드명 맞추기 -->
+                    <input type="hidden" id="rno">
+                    이름 : <input type="text" name="rtitle"><br>
+                    <input type="input" hidden="" name="rlat" id="rlat">
+                    <input type="input" hidden="" name="rlon" id="rlon">
+                    <input type="button" onclick="sample5_execDaumPostcode()" value="주소 검색"><br>
+                    <div id="map" style="width:300px;height:300px;margin-top:10px;display:none"></div>
+                    주소 :<input name="raddress" type="text" id="sample5_address" placeholder="주소"><br>
+                    거래방식 : <select id="rtype" name="rtype">
+                    <option value="전세">전세</option>
+                    <option value="월세">월세</option>
+                    <option value="매매">매매</option>
+                </select><br>
+                    가격 : <input type="text" name="rprice"><br>
+                    면적 : <input type="text" name="rarea"><br>
+                    관리비 : <input type="text" name="radministrativeexpenses"><br>
+                    구조 : <input type="text" name="rrescue"><br>
+                    준공날짜 : <input type="text" name="rcompletiondate"><br>
+                    주차 여부 : <select id="rparking" name="rparking">
+                    <option value="true">가능</option>
+                    <option value="false">불가능</option>
+                </select><br>
+                    엘리베이터 여부 : <select id="relevator" name="relevator">
+                    <option value="true">가능</option>
+                    <option value="false">불가능</option>
+                </select><br>
+                    입주가능일 : <input type="text" name="rmovein"><br>
+                    현재 층 : <input type="text" name="rcurrentfloor"><br>
+                    건물 전체 층 : <input type="text" name="rallfloor"><br>
+                    건물종류 : <input type="text" name="rbuildingtype"><br>
+                    상세설명 : <input type="text" name="rdetail"><br>
+                    <button type="button" onclick="update()">수정</button><br>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="modalclosebtn" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary" onclick="update()">수정</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="/js/member/myroom.js"></script>
+
+</body>
+</html>

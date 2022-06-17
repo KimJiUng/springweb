@@ -3,14 +3,16 @@
 
 // 0.현재 내 위치 위도,경도 구하기
 // GeoLocation을 이용해서 접속 위치를 얻어옵니다
+/*
 navigator.geolocation.getCurrentPosition(function(position) {
     var rlat = position.coords.latitude, // 위도
         rlon = position.coords.longitude; // 경도
 
+*/
 
     // 1. Map 변수
  var map = new kakao.maps.Map(document.getElementById('map'), { // 지도를 표시할 div
-        center : new kakao.maps.LatLng(rlat, rlon), // 지도의 중심좌표 // 현재 접속된 디바이스 좌표
+        center : new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표 // 현재 접속된 디바이스 좌표
         level : 5 // 지도의 확대 레벨
     });
 
@@ -48,7 +50,7 @@ navigator.geolocation.getCurrentPosition(function(position) {
 
     // 마커 이미지 변경
         // 마커 이미지의 주소
-        var markerImageUrl = 'http://localhost:8081/img/icon_home.png',
+        var markerImageUrl = 'http://192.168.17.85:8081/img/icon_home.png',
             markerImageSize = new kakao.maps.Size(40, 42), // 마커 이미지의 크기
             markerImageOptions = {
                 offset : new kakao.maps.Point(20, 42)// 마커 좌표에 일치시킬 이미지 안의 좌표
@@ -121,7 +123,7 @@ navigator.geolocation.getCurrentPosition(function(position) {
     });
 
 
-}); // 현재 내 위치 위도,경도 구하기 end
+//}); // 현재 내 위치 위도,경도 구하기 end
 
 function test(rno){
     $.ajax({
