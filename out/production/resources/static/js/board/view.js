@@ -8,6 +8,7 @@ function board_get(){
         success : function(re){
             html = "";
             html += '<div>게시물 번호'+re.bno+'</div>'+
+                    '<div>게시물 작성자'+re.mid+'</div>'+
                     '<div>게시물 제목'+re.btitle+'</div>'+
                     '<div>게시물 내용'+re.bcontent+'</div>'+
                     '<div>게시물 작성일'+re.createdate+'</div>'+

@@ -15,7 +15,7 @@ function board_save(){
                 alert("작성성공");
                 location.href = "/board/list";
             }else{
-                alert("작성실패");
+                alert("작성 권한이 없습니다");
             }
         }
 

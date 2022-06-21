@@ -1,6 +1,7 @@
 package ezenweb.domain.member;
 
 import ezenweb.domain.BaseTime;
+import ezenweb.domain.board.BoardEntity;
 import ezenweb.domain.room.RoomEntity;
 import lombok.*;
 
@@ -23,7 +24,11 @@ public class MemberEntity extends BaseTime {
     private String mname;
 
     @Builder.Default
-    @OneToMany(mappedBy = "memberEntity")
+    @OneToMany(mappedBy = "memberEntity", cascade = CascadeType.ALL)
     private List<RoomEntity> roomEntityList = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "memberEntity", cascade = CascadeType.ALL)
+    private List<BoardEntity> boardEntityList = new ArrayList<>();
 
 }
