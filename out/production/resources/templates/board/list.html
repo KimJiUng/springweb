@@ -8,11 +8,27 @@
 
     <div th:replace="header.html::header"></div>
     <div class="container" id="boardlist11">
+        <a href="/board/save">쓰기</a>
+        <div id="categorybox"></div>
         <table class="table" id="boardlist">
 
         </table>
-        <a href="/board/save">쓰기</a>
-        <a href="/board/view">보기</a>
+
+
+        <ul id="pagebtnbox" class="pagination justify-content-center">
+            <li class="page-item"><button class="page-link" type="button" onclick="pagebtn(0)">1</button> </li>
+        </ul>
+
+
+        <div>
+            <select id="key">
+                <option value="btitle">제목</option>
+                <option value="bcontent">내용</option>
+                <option value="mid">작성자</option>
+            </select>
+            <input type="text" id="keyword">
+            <button type="button" onclick="search()">검색</button>
+        </div>
     </div>
 
 

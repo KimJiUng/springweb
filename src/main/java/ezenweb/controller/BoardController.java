@@ -69,12 +69,13 @@ public class BoardController {
 
     // 2. R 전체 게시물 출력 처리 메소드
     @GetMapping("/getboardlist")
-    public void getblist(HttpServletResponse response){
-        JSONArray jsonArray = boardService.getboardlist();
+    public void getblist(HttpServletResponse response,@RequestParam("key") String key,@RequestParam("cno") int cno,
+                         @RequestParam("keyword") String keyword,@RequestParam("page") int page){
+        JSONObject object = boardService.getboardlist(key, keyword,cno,page);
         try{
             response.setCharacterEncoding("UTF-8");
             response.setContentType("application/json");
-            response.getWriter().print(jsonArray);
+            response.getWriter().print(object);
         }catch(Exception e){e.printStackTrace();}
     }
 
@@ -90,6 +91,16 @@ public class BoardController {
         }catch(Exception e){e.printStackTrace();}
     }
 
+    // 2-3. R 카테고리 출력 메소드
+    @GetMapping("/getcategory")
+    public void getcategory(HttpServletResponse response){
+        JSONArray jsonArray = boardService.getcategory();
+        try{
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(jsonArray);
+        }catch(Exception e){e.printStackTrace();}
+    }
 
 
 

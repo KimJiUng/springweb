@@ -13,6 +13,7 @@ public class BoardDto {
     private String bcontent;
     private int bview;
     private int blike;
+    private String category;
 
     // Dto -> Entity
     public BoardEntity toentity(){
