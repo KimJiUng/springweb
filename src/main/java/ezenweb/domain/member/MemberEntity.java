@@ -23,6 +23,13 @@ public class MemberEntity extends BaseTime {
     private String mpassword;
     private String mname;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;  // 권한
+
+    public String getrolekey() {
+        return role.getKey();
+    }
+
     @Builder.Default
     @OneToMany(mappedBy = "memberEntity", cascade = CascadeType.ALL)
     private List<RoomEntity> roomEntityList = new ArrayList<>();

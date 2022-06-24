@@ -13,15 +13,28 @@
     <div class="container">
         <h3>헤더</h3>
         <a href="/">메인</a>    <!-- href="URL" : Controller 클래스내 @GetMapping("URL") -->
-        <a th:if="${session.login != null}" href="/room/write">등록</a>
+        <!-- 시큐리티 사용 전 -->
+<!--        <a th:if="${session.login != null}" href="/room/write">등록</a>-->
+<!--        <a href="/room/list">지도보기</a>-->
+<!--        <a href="/board/list">자유게시판</a>-->
+<!--        <span th:if="${session.login != null}" th:text="${session.login.mid}"></span>-->
+<!--        <a th:if="${session.login == null}" href="/member/signup">회원가입</a>-->
+<!--        <a th:if="${session.login == null}" href="/member/login">로그인</a>-->
+<!--        <a th:if="${session.login != null}" href="/member/logout">로그아웃</a>-->
+<!--        <a th:if="${session.login != null}" href="/member/update">회원정보수정</a>-->
+<!--        <a th:if="${session.login != null}" href="/member/myroom">내가등록한룸</a>-->
+        <!-- 시큐리티 사용 -->
+        <a href="/room/write">등록</a>
         <a href="/room/list">지도보기</a>
         <a href="/board/list">자유게시판</a>
-        <span th:if="${session.login != null}" th:text="${session.login.mid}"></span>
-        <a th:if="${session.login == null}" href="/member/signup">회원가입</a>
-        <a th:if="${session.login == null}" href="/member/login">로그인</a>
-        <a th:if="${session.login != null}" href="/member/logout">로그아웃</a>
-        <a th:if="${session.login != null}" href="/member/update">회원정보수정</a>
-        <a th:if="${session.login != null}" href="/member/myroom">내가등록한룸</a>
+        <a href="/member/signup">회원가입</a>
+        <a href="/member/login">로그인</a>
+        <a href="/member/logout">로그아웃</a>
+        <a href="/member/update">회원정보수정</a>
+        <a href="/member/myroom">내가등록한룸</a>
+
+
+
     </div>
     <br><br><br>
   <!--부트스트랩-->

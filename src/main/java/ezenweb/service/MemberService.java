@@ -5,42 +5,72 @@ import ezenweb.domain.member.MemberRepository;
 import ezenweb.dto.LoginDto;
 import ezenweb.dto.MemberDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class MemberService {
+public class MemberService implements UserDetailsService {
+
+    // 1. 로그인 서비스 제공 메소드
+    // 2. 패스워드 검증 X [시큐리티 제공]
+    // 3. 아이디만 검증 처리
+    @Override
+    public UserDetails loadUserByUsername(String mid) throws UsernameNotFoundException {
+        // 1. 회원 아이디로 엔티티 찾기
+        Optional<MemberEntity> optionalMember = memberRepository.findByMid(mid);
+        MemberEntity memberEntity = optionalMember.orElse(null);
+                                    // Optional 클래스 [null 오류 방지]
+                                    // 1. optional.isPresent() : null 아니면
+                                    // 2. optional.orElse(데이터) : 만약에 optional 객체가 비어있으면 반환할 데이터
+        // 2. 찾은 회원엔티티의 권한[키]을 리스트에 담기
+        List<GrantedAuthority> authorityList = new ArrayList<>();
+                // GrantedAuthority : 부여된 인증의 클래스
+                // List<GrantedAuthority> : 부여된 인증들을 모아두기
+        authorityList.add(new SimpleGrantedAuthority(memberEntity.getrolekey() ) );
+                // 리스트에 인증된 엔티티의 키를 보관
+        System.out.println("권한 키 : "+ memberEntity.getrolekey());
+        // UserDetails -> 인증되면 세션 부여
+        return new LoginDto(memberEntity, authorityList); // 회원 엔티티, 인증된 리스트 세션 부여
+
+    }
 
     @Autowired
     HttpServletRequest request;
 
     // 로직/트랜잭션
     // 1. 로그인처리 메소드
-    public boolean login(String mid, String mpassword){
-
-        // 1. 모든 엔티티 호출
-        List<MemberEntity> memberEntityList = memberRepository.findAll();
-
-        // 2. 모든 엔티티 리스트에서 입력받은 데이터와 비교
-        for(MemberEntity entity : memberEntityList){
-            // 3. 아이디와 비밀번호가 동일하면
-            if(entity.getMid().equals(mid) && entity.getMpassword().equals(mpassword)){
-                LoginDto loginDto = LoginDto.builder()
-                        .mno(entity.getMno())
-                        .mid(entity.getMid())
-                        .mname(entity.getMname())
-                        .build();
-                // 세션 객체 호출
-                request.getSession().setAttribute("login",loginDto);
-
-                return true;    // 4. 로그인 성공
-            }
-        }
-        return false;   // 5. 로그인 실패
-    }
+//    public boolean login(String mid, String mpassword){
+//
+//        // 1. 모든 엔티티 호출
+//        List<MemberEntity> memberEntityList = memberRepository.findAll();
+//
+//        // 2. 모든 엔티티 리스트에서 입력받은 데이터와 비교
+//        for(MemberEntity entity : memberEntityList){
+//            // 3. 아이디와 비밀번호가 동일하면
+//            if(entity.getMid().equals(mid) && entity.getMpassword().equals(mpassword)){
+//                LoginDto loginDto = LoginDto.builder()
+//                        .mno(entity.getMno())
+//                        .mid(entity.getMid())
+//                        .mname(entity.getMname())
+//                        .build();
+//                // 세션 객체 호출
+//                request.getSession().setAttribute("login",loginDto);
+//
+//                return true;    // 4. 로그인 성공
+//            }
+//        }
+//        return false;   // 5. 로그인 실패
+//    }
     
     @Autowired
     private MemberRepository memberRepository;
@@ -75,9 +105,9 @@ public class MemberService {
     }
 
     // 3. 로그아웃 처리 메소드
-    public void logout(){
-        request.getSession().setAttribute("login",null);    // 해당 세션에 null 대입
-    }
+//    public void logout(){
+//        request.getSession().setAttribute("login",null);    // 해당 세션에 null 대입
+//    }
 
     // 4. 회원 수정 메소드
     @Transactional
@@ -99,13 +129,20 @@ public class MemberService {
         if(loginDto==null){
             return false;
         }
-        MemberEntity memberEntity = memberRepository.findById(loginDto.getMno()).get();
-        if(memberEntity.getMpassword().equals(mpassword)){
-            memberRepository.delete(memberEntity);
-            return true;
+        Optional<MemberEntity> optionalMember = memberRepository.findById(loginDto.getMno());
+        if(optionalMember.isPresent()){
+            MemberEntity memberEntity = optionalMember.get();
+            if(memberEntity.getMpassword().equals(mpassword)){
+                memberRepository.delete(memberEntity);
+                return true;
+            }else{
+                return false;
+            }
         }else{
             return false;
         }
+
+
 
 
     }

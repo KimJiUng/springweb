@@ -4,7 +4,7 @@ function login(){
     let mpassword = $("#mpassword").val();
 
     $.ajax({
-        url : "/member/login",
+        url : "/member/logincontroller",
         data : {"mid":mid, "mpassword":mpassword},
         type : "POST",
         success : function(re){
@@ -15,7 +15,6 @@ function login(){
                 alert("로그인실패");
             }
         }
-    })
-
+    });
 
 }

@@ -34,20 +34,22 @@ public class MemberController {
         return result;
     }
 
+    // 시큐리티 사용시에는 시큐리티내 로그인 서비스 사용
     // 4.로그인 처리 매핑
-    @PostMapping("/login")
-    @ResponseBody
-    public boolean login(@RequestParam("mid") String mid, @RequestParam("mpassword") String mpassword){
-       return memberService.login(mid,mpassword);
-    }
+//    @PostMapping("/login")
+//    @ResponseBody
+//    public boolean login(@RequestParam("mid") String mid, @RequestParam("mpassword") String mpassword){
+//       return memberService.login(mid,mpassword);
+//    }
 
+    // 시큐리티 사용시에는 시큐리티내 로그아웃 서비스 사용
     // 5. 로그아웃
-    @GetMapping("/logout")
-    public String logout(){
-        memberService.logout();
-        return "main";    // 타임리프 반환
-        //return "redirect:/";    // URL 이동
-    }
+//    @GetMapping("/logout")
+//    public String logout(){
+//        memberService.logout();
+//        return "main";    // 타임리프 반환
+//        //return "redirect:/";    // URL 이동
+//    }
 
     // 6. 회원수정 경로 매핑
     @GetMapping("/update")
