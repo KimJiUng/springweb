@@ -16,12 +16,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -44,11 +49,37 @@ public class BoardService {
     @Transactional
     public boolean save(BoardDto boardDto){
 
-        // 1. 세션 호출
-        LoginDto loginDto= (LoginDto)request.getSession().getAttribute("login");
-        if(loginDto!=null){    // 로그인 되어 있으면
+        // 1. 세션 호출 [시큐리티 사용시 -> 세션 x -> 인증세션(UserDetails vs DefaultOAuth2User) ]
+        // LoginDto loginDto= (LoginDto)request.getSession().getAttribute("login");
+        // 1. 인증된 세션 호출 [시큐리티내 인증 결과 호출]
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 2. 인증 정보 가져오기
+        Object principal = authentication.getPrincipal();  // Principal : 인증 정보
+        // 3. 일반회원 : UserDetails / oauth회원 : DefaultOAuth2User 구분
+            // java 문법 : 자식객체 instanceof 부모클래스명 : 상속여부 확인 키워드
+        String mid = null;
+        if(principal instanceof UserDetails){   // 인증정보의 타입이 UserDetails 이면 [일반회원 검증]
+            mid = ((UserDetails) principal).getUsername();
+            System.out.println("일반 회원으로 글쓰기 ~"+principal.toString());
+        }else if(principal instanceof DefaultOAuth2User){   // 인증정보의 타입이 DefaultOAuth2User 이면 [oauth2회원 검증]
+            System.out.println("oauth회원으로 글쓰기 ~"+principal.toString());
+            Map<String,Object> map =((DefaultOAuth2User) principal).getAttributes();
+
+            if(map.get("response")!=null){  // 1. 네이버일 경우 [Attributes에 response라는 키가 존재하면]
+                Map<String,Object> map2 = (Map<String, Object>) map.get("response");
+                mid = map2.get("email").toString().split("@")[0];   // 아이디만 추출
+            }else{  // 2. 카카오일 경우
+                Map<String,Object> map2 = (Map<String, Object>) map.get("kakao_account");
+                mid = map2.get("email").toString().split("@")[0];   // 아이디만 추출
+            }
+
+        }else{  // 인증 정보가 없을경우
+            return false;
+        }
+
+        if(mid!=null){    // 로그인 되어 있으면
             // 2. 로그인된 회원의 엔티티 찾기
-            Optional<MemberEntity> optionalMember = memberRepository.findById(loginDto.getMno());
+            Optional<MemberEntity> optionalMember = memberRepository.findBymid(mid);
             if(optionalMember.isPresent()){ // null 아니면
                 // 만약에 기존에 있는 카테고리이면
                 boolean categorycheck = false;
@@ -100,7 +131,7 @@ public class BoardService {
                     // size = "현재페이지에 보여줄 게시물수"
                     // sort = "정렬기준" [ Sort.Direction.DESC,"정렬필드명"]
                         // sort 문제점 : 정렬 필드명에 _ 인식 불가능
-        Pageable pageable = PageRequest.of(page,1, Sort.Direction.DESC,"bno");
+        Pageable pageable = PageRequest.of(page,3, Sort.Direction.DESC,"bno");
         JSONObject object2 = new JSONObject();
         object2.put("totalpage",1);
         object2.put("startbtn",1);
@@ -116,7 +147,7 @@ public class BoardService {
                 boardEntities = boardRepository.findByBcontent(cno,keyword,pageable);
             }else if(key.equals("mid")){
                 // 입력받은 mid -> [mno] 엔티티 변환
-                Optional<MemberEntity> optionalMember = memberRepository.findByMid(keyword);
+                Optional<MemberEntity> optionalMember = memberRepository.findBymid(keyword);
                 if(optionalMember.isPresent()){ // isPresent() : Optional이 null 아닐경우
                     MemberEntity memberEntity = optionalMember.get();
                     boardEntities = boardRepository.findAllByMno(cno,memberEntity,pageable);    // 찾은 회원 엔티티를 인수로 전달

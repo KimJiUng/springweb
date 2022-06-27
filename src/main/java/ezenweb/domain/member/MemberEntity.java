@@ -22,6 +22,8 @@ public class MemberEntity extends BaseTime {
     private String mid;
     private String mpassword;
     private String mname;
+    private String memail;
+    private String oauth;   // 일반회원/oauth 회원 구분용
 
     @Enumerated(EnumType.STRING)
     private Role role;  // 권한

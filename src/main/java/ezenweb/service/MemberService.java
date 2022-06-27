@@ -4,30 +4,38 @@ import ezenweb.domain.member.MemberEntity;
 import ezenweb.domain.member.MemberRepository;
 import ezenweb.dto.LoginDto;
 import ezenweb.dto.MemberDto;
+import ezenweb.dto.OauthDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
-public class MemberService implements UserDetailsService {
-
+public class MemberService implements UserDetailsService, OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+                                    // UserDetailsService : 일반회원
+                                        // -----> loadUserByUsername 메소드 구현
+                                    // OAuth2UserService<OAuth2UserRequest, OAuth2User> : Oauth2 회원
+                                        // -----> loadUser 메소드 구현
     // 1. 로그인 서비스 제공 메소드
     // 2. 패스워드 검증 X [시큐리티 제공]
     // 3. 아이디만 검증 처리
     @Override
     public UserDetails loadUserByUsername(String mid) throws UsernameNotFoundException {
         // 1. 회원 아이디로 엔티티 찾기
-        Optional<MemberEntity> optionalMember = memberRepository.findByMid(mid);
+        Optional<MemberEntity> optionalMember = memberRepository.findBymid(mid);
         MemberEntity memberEntity = optionalMember.orElse(null);
                                     // Optional 클래스 [null 오류 방지]
                                     // 1. optional.isPresent() : null 아니면
@@ -147,4 +155,38 @@ public class MemberService implements UserDetailsService {
 
     }
 
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+
+        // 인증[로그인성공] 된
+        OAuth2UserService  oAuth2UserService = new DefaultOAuth2UserService();
+        OAuth2User oAuth2User = oAuth2UserService.loadUser(userRequest);
+
+        // 클라이언트 아이디 [ 네이버 vs 카카오 vs 구글 ] : ouath 구분용으로 사용할 변수
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+
+
+        // 회원정보 요청시 사용되는 json 키 값 호출
+        String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+        System.out.println("클라이언트(개발자)가 등록한 이름 : "+registrationId);
+        System.out.println("회원정보(JSON) 호출시 사용되는 이름 : "+userNameAttributeName);
+        System.out.println("회원정보 : "+oAuth2User.getAttributes());
+
+        OauthDto oauthDto = OauthDto.of(registrationId,userNameAttributeName,oAuth2User.getAttributes());
+        System.out.println("oauthDto 확인 : "+oauthDto.toString());
+        // dto를 entity로 변환시켜서 DB에 저장
+
+        // 이메일이 DB에 존재하면
+        Optional<MemberEntity> optionalMember = memberRepository.findByMemail(oauthDto.getMemail());
+        if(!optionalMember.isPresent()){
+            MemberEntity memberEntity = oauthDto.toentity();
+            memberRepository.save(memberEntity);
+        }
+
+
+        return new DefaultOAuth2User(Collections.singleton(
+                new SimpleGrantedAuthority("ROLE_MEMBER")),
+                oAuth2User.getAttributes(),
+                userNameAttributeName);    // 인증 세션
+    }
 }
