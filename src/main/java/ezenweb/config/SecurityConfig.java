@@ -33,6 +33,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .defaultSuccessUrl("/")// 로그인 성공시 이동할 URL
                 .usernameParameter("mid") // 로그인시 아이디로 입력받을 변수명 [ 기본값 : user -> mid ]
                 .passwordParameter("mpassword")// 로그인시 비밀번호로 입력받을 변수명[ 기본값 : password -> mpassword ]
+                .failureUrl("/member/login/error")  // 로그인 실패시 이동할 URL 정의
                 // usernameParameter,passwordParameter   => 변수 name 필드명
                 .and()
                 .logout()
@@ -50,7 +51,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .oauth2Login()  // oauth2 관련 설정
                 .userInfoEndpoint() // 유저 정보가 들어오는 위치
-                .userService(memberService);    // 해당 서비스로 유저 정보 받기
+                .userService(memberService);    // 해당 서비스로 유저 정보 받기 [loadUser 재정의]
 
 //        super.configure(http); // 슈퍼클래스의 기본 설정으로 사용
     }   // configure 메소드 end
@@ -64,7 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // 2.
     @Override   // 인증(로그인) 관리 메소드
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(memberService).passwordEncoder(new BCryptPasswordEncoder());
+        auth.userDetailsService(memberService).passwordEncoder(new BCryptPasswordEncoder()); // loadUserByUsername 재정의
             // 인증할 서비스 객체               -> 패스워드 인코더(BCrypt 객체로)
         //super.configure(auth);
     }

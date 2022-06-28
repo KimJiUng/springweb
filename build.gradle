@@ -39,6 +39,7 @@ dependencies {
     // implementation group: 'org.modelmapper', name: 'modelmapper', version: '2.3.8'   // modelmapper 라이브러리 (dto->entity 변환)
 
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // oauth2 [소셜 로그인] 라이브러리
+    implementation 'org.springframework.boot:spring-boot-starter-mail'  // smtp 이메일 라이브러리
 }
 
 tasks.named('test') {

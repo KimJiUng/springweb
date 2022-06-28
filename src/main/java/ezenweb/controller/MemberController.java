@@ -22,6 +22,22 @@ public class MemberController {
         return "member/write";
     }
 
+    //
+    @GetMapping("/email/{authkey}/{mid}")
+    public String signupemail(@PathVariable("authkey") String authkey,@PathVariable("mid") String mid){
+        // @PathVariable : 경로상(URL) 변수 요청
+
+        // 이메일 검증 처리
+        boolean result = memberService.authsuccess(authkey,mid);
+        if(result){
+            // 인증 성공 화면 전환
+            return "member/authsuccess";
+        }else{  // 인증 실패 화면 전환
+            return "";
+        }
+
+    }
+
     @Autowired
     MemberService memberService;    // member 서비스 객체 생성
 

@@ -15,6 +15,7 @@ public class MemberDto {
     private String mid;
     private String mpassword;
     private String mname;
+    private String memail;
 
     // DTO -> ENTITY
     public MemberEntity toentity(){
@@ -30,6 +31,7 @@ public class MemberDto {
                 .mid(this.mid)
                 .mpassword(passwordEncoder.encode(this.mpassword))
                 .mname(this.mname)
+                .memail(this.memail)
                 // 권한 부여
                 .role(Role.MEMBER)
                 .build();
