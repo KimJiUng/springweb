@@ -22,4 +22,9 @@ public class indexController {
         return "main";  // HTML 파일명
     }
 
+    @GetMapping("/omok")
+    public String omok(){
+        return "index";
+    }
+
 }
