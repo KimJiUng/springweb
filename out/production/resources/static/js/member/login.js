@@ -1,20 +1,16 @@
 function login(){
-
-    let mid = $("#mid").val();
-    let mpassword = $("#mpassword").val();
-
     $.ajax({
-        url : "/member/logincontroller",
-        data : {"mid":mid, "mpassword":mpassword},
-        type : "POST",
-        success : function(re){
-            if(re==true){
-                alert("로그인성공");
-                location.href = "/";    // 메인 페이지로 매핑
+        url : "/member/authmailcheck",
+        data : { "mid" : $("#mid").val() },
+        success: function(re){
+            if( re == 1){
+                $("#loginform").submit();   // .submit() : form 전송
+            }else if(re == 2 || re == 3){
+                alert("간편 로그인 이용해주세요.");
             }else{
-                alert("로그인실패");
+                alert("이메일 인증 후 로그인이 가능합니다.");
             }
         }
-    });
 
+    });
 }

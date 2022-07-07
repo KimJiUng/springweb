@@ -12,6 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -60,38 +61,51 @@ public class MemberService implements UserDetailsService, OAuth2UserService<OAut
 
     // OAuth 회원 로그인
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+    public OAuth2User loadUser( OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        try{
+            // 인증[로그인] 결과 정보 요청
+            OAuth2UserService oAuth2UserService = new DefaultOAuth2UserService();
+            OAuth2User oAuth2User = oAuth2UserService.loadUser( userRequest );
 
-        // 인증[로그인성공] 된
-        OAuth2UserService  oAuth2UserService = new DefaultOAuth2UserService();
-        OAuth2User oAuth2User = oAuth2UserService.loadUser(userRequest);
+            // 클라이언트 아이디 [ 네이버 vs 카카오 vs 구글 ] : oauth 구분용 으로 사용할 변수
+            String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        // 클라이언트 아이디 [ 네이버 vs 카카오 vs 구글 ] : ouath 구분용으로 사용할 변수
-        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+            // 회원정보 요청시 사용되는 JSON 키 이름 호출  : 회원정보 호출시 사용되는 키 이름
+            String userNameAttributeName = userRequest
+                    .getClientRegistration()
+                    .getProviderDetails()
+                    .getUserInfoEndpoint()
+                    .getUserNameAttributeName();
 
+            // 확인
+            System.out.println(  "클라이언트(개발자)가 등록 이름 :   " + registrationId   );
+            System.out.println(  "회원 정보(JSON) 호출시 사용되는 키 이름 :   " + userNameAttributeName   );
+            System.out.println(  "회원 인증(로그인) 결과 내용  : " + oAuth2User.getAttributes() );
 
-        // 회원정보 요청시 사용되는 json 키 값 호출
-        String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
-        System.out.println("클라이언트(개발자)가 등록한 이름 : "+registrationId);
-        System.out.println("회원정보(JSON) 호출시 사용되는 이름 : "+userNameAttributeName);
-        System.out.println("회원정보 : "+oAuth2User.getAttributes());
+            // oauth2 정보 -> Dto -> entitiy -> db저장
+            OauthDto oauthDto = OauthDto.of(  registrationId ,  userNameAttributeName  ,  oAuth2User.getAttributes()  );
 
-        OauthDto oauthDto = OauthDto.of(registrationId,userNameAttributeName,oAuth2User.getAttributes());
-        System.out.println("oauthDto 확인 : "+oauthDto.toString());
-        // dto를 entity로 변환시켜서 DB에 저장
+            System.out.println( "oauthDto 확인 : " + oauthDto.toString() );
 
-        // 이메일이 DB에 존재하면
-        Optional<MemberEntity> optionalMember = memberRepository.findByMemail(oauthDto.getMemail());
-        if(!optionalMember.isPresent()){
-            MemberEntity memberEntity = oauthDto.toentity();
-            memberRepository.save(memberEntity);
-        }
+            //  1. 이메일로 엔티티호출
+            Optional<MemberEntity> optional
+                    =  memberRepository.findBymemail( oauthDto.getMemail() );
+            // 2. 만약에 엔티티가 없으면
+            if( !optional.isPresent() ){
+                memberRepository.save( oauthDto.toentity() );  // entity 저장
+            }
 
-        return new DefaultOAuth2User(Collections.singleton(
-                new SimpleGrantedAuthority("ROLE_MEMBER")),
-                oAuth2User.getAttributes(),
-                userNameAttributeName);    // 인증 세션
+            // 반환타입 DefaultOAuth2User ( 권한(role)명 , 회원인증정보 , 회원정보 호출키 )
+            // DefaultOAuth2User , UserDetails : 반환시 인증세션 자동 부여 [ SimpleGrantedAuthority : (권한) 필수~  ]
+            return new DefaultOAuth2User(
+                    Collections.singleton(new SimpleGrantedAuthority("ROLE_MEMBER")),
+                    oAuth2User.getAttributes() ,
+                    userNameAttributeName
+            );
+        }catch (Exception e){e.printStackTrace();}
+        return null;
     }
+
 
     @Autowired
     HttpServletRequest request;
@@ -215,7 +229,7 @@ public class MemberService implements UserDetailsService, OAuth2UserService<OAut
         return true;
     }
 
-    // 회원 탈퇴 메소드
+    // 5. 회원 탈퇴 메소드
     public boolean mdelete(String mpassword){
         LoginDto loginDto = (LoginDto)request.getSession().getAttribute("login");
         if(loginDto==null){
@@ -247,6 +261,61 @@ public class MemberService implements UserDetailsService, OAuth2UserService<OAut
             return false;
         }
     }
+
+    // 6. 아이디 찾기 [이름과 이메일이 동일한 경우 프론트에 표시]
+    public String findid(String mname, String memail){
+        String findid = null;
+        Optional<MemberEntity> optional = memberRepository.findid(mname,memail);
+        if(optional.isPresent()){
+            findid = optional.get().getMid();
+        }
+        return findid;
+    }
+
+    @Transactional
+    // 7. 패스워드 찾기 [아이디,이메일이 동일한 경우 이메일로 임시비밀번호(난수) 전송]
+    public boolean findpw(String mid, String memail){
+        Optional<MemberEntity> optional = memberRepository.findpw( mid , memail );
+        if( optional.isPresent() ){ // 해당 엔티티를 찾았으면
+            // 1. 임시비밀번호 난수 생성한다.
+            String tempassword = "";         //            StringBuilder temppassword = new StringBuilder();
+            for( int i = 0 ; i<12 ; i++ ) {
+                Random random = new Random();
+                char rchar = (char) (random.nextInt(58) + 65);
+                tempassword += rchar;  //                temppassword.append( rchar );
+            }
+            System.out.println("임시비밀번호 : " + tempassword );
+            // 2. 현재 비밀번호를 임시비밀번호로 변경한다.
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();   // 비크립트 방식의 암호화
+            optional.get().setMpassword( passwordEncoder.encode( tempassword) ); // 암호화
+            // 3. 변경된 비밀번호를 이메일로 전송한다.
+            StringBuilder html = new StringBuilder();    // 메일 내용 구현
+            html.append("<html><body>");        // html 시작
+            html.append("<div>회원님의 임시 비밀번호</div>");
+            html.append("<div>"+ tempassword + "</div>");
+            html.append("</body></html>");        //html 끝
+            // 메일 전송 메소드 호출
+            mailsend( optional.get().getMemail(),  "EZEN부동산 회원 임시 비밀번호" ,  html );
+            return true;
+        }
+        // 해당 엔티티를 못찾았으면
+        return false;
+    }
+
+    public int authmailcheck(String mid){
+        Optional<MemberEntity> optionalMember = memberRepository.findBymid(mid);
+        if(optionalMember.isPresent()){
+            if(optionalMember.get().getOauth().equals("Local")){
+                return 1;
+            }else if(optionalMember.get().getOauth().equals("kakao")){
+                return 2;
+            }else if(optionalMember.get().getOauth().equals("naver")){
+                return 3;
+            }
+        }
+        return 0;
+    }
+
 
 
 }

@@ -10,6 +10,33 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/member")
 public class MemberController {
 
+    // 아이디 / 비밀번호 찾기 페이지 이동 매핑
+    @GetMapping("/find")
+    public String find(){ return "member/find";}
+
+    // 아이디 찾기
+    @GetMapping("/findid")
+    @ResponseBody
+    public String findid(@RequestParam("mname") String mname, @RequestParam("memail") String memail){
+        return memberService.findid(mname,memail);
+    }
+
+    // 비밀번호 찾기
+    @GetMapping("/findpw")
+    @ResponseBody
+    public Boolean findpw(@RequestParam("mid") String mid, @RequestParam("memail") String memail){
+        Boolean result = memberService.findpw(mid,memail);
+        return result;
+    }
+
+    // 로그인시 이메일 인증 체크
+    @GetMapping("/authmailcheck")
+    @ResponseBody
+    public int authmailcheck(@RequestParam("mid") String mid){
+        return memberService.authmailcheck(mid);
+    }
+
+
     // 1. 로그인 페이지 이동 매핑
     @GetMapping("/login")
     public String login(){
@@ -85,6 +112,7 @@ public class MemberController {
         return "member/myroom";
     }
 
+    // 회원 탈퇴
     @DeleteMapping("/mdelete")
     @ResponseBody
     public boolean mdelete(@RequestParam("mpassword") String mpassword){
