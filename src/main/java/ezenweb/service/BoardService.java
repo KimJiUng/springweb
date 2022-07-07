@@ -11,6 +11,10 @@ import ezenweb.dto.LoginDto;
 import ezenweb.dto.MemberDto;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -255,7 +259,20 @@ public class BoardService {
     // 1. 날씨 크롤링
     public void getweather(){
         // 0. java : jsoup 라이브러리 그레이들 빌드
-
+        // 1. 정보를 가지고 올 URL 작성
+        String url = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=%EB%82%A0%EC%94%A8";
+        // 2. 해당 url을 jsoup으로 연결 [jsoup은 해당 url과 연결]
+        Connection conn = Jsoup.connect(url);
+        try{
+            // 3. 해당 url 객체로 가져오기
+            Document document = conn.get();
+            // 4. 특정 태그 호출
+            Element element = document.getElementsByTag("body").first();
+            // 5. 확인
+            System.out.println(element);
+        }catch(Exception e){
+            System.out.println(e);
+        }
     }
 
     // 2. 부동산 관련 뉴스 크롤링
