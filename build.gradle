@@ -40,6 +40,8 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // oauth2 [소셜 로그인] 라이브러리
     implementation 'org.springframework.boot:spring-boot-starter-mail'  // smtp 이메일 라이브러리
+
+    implementation 'org.jsoup:jsoup:1.15.2' // jsoup : 자바에서 사용하는 HTML 파싱 라이브러리(크롤링)
 }
 
 tasks.named('test') {

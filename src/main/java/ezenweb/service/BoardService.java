@@ -250,6 +250,22 @@ public class BoardService {
         boardRepository.delete(boardEntity);
         return true;
     }
+    //////////////////////////////// 크롤링 /////////////////////////////////////
 
+    // 1. 날씨 크롤링
+    public void getweather(){
+        // 0. java : jsoup 라이브러리 그레이들 빌드
 
+    }
+
+    // 2. 부동산 관련 뉴스 크롤링
+    public void getnews(){
+        System.out.println("부동산 관련 뉴스 크롤링 실행");
+    }
+
+    // 3. 부동산 시세 크롤링
+    public void getvalue(){
+        System.out.println("부동산 시세 크롤링 실행");
+    }
+    //////////////////////////////// 크롤링 end /////////////////////////////////////
 }
