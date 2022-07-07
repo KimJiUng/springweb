@@ -7,6 +7,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import javax.servlet.http.HttpServletResponse;
+
 @Controller
 public class indexController {
 
@@ -24,6 +26,25 @@ public class indexController {
         boardService.getvalue();
         return "main";  // HTML 파일명
     }
+
+    @GetMapping("/getweather")
+    public void getweather(HttpServletResponse response){
+        try{
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(boardService.getweather());
+        }catch(Exception e){e.printStackTrace();}
+    }
+
+    @GetMapping("/getnews")
+    public void getnews(HttpServletResponse response){
+        try{
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(boardService.getnews());
+        }catch(Exception e){e.printStackTrace();}
+    }
+
 
     @GetMapping("/omok")
     public String omok(){

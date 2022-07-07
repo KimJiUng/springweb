@@ -15,6 +15,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -255,29 +256,80 @@ public class BoardService {
         return true;
     }
     //////////////////////////////// 크롤링 /////////////////////////////////////
-
+    // 라이브러리
+        // 1. Connection : 연결된 html 인터페이스
+            // 1. Jsoup.connect(연결할 url);
+            // 2. conn.get() : 연결된 html 호출
+        // 2. Document : html 객체화
+        // 3. Element :
+        // 4. Elements
+            // 1. .getElementsByTag(태그명)
+            // 2. .getElementsByClass(클래스명)
+            // 3. .getElementsByAttribute(속성명)
+            // 4. .getElementById(아이디명)
+            // 5. .get(인덱스)
+            // 6. .first() : 첫번째 인덱스
+            // 7. .attr(속성명) : 해당 속성의 값 호출
+            // 8. .text() : html 문서내용 호출
     // 1. 날씨 크롤링
-    public void getweather(){
+    public JSONObject getweather(){
         // 0. java : jsoup 라이브러리 그레이들 빌드
         // 1. 정보를 가지고 올 URL 작성
-        String url = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=%EB%82%A0%EC%94%A8";
+        String weatherurl = "https://search.daum.net/search?nil_suggest=btn&w=tot&DA=SBC&q=%EB%82%A0%EC%94%A8";
         // 2. 해당 url을 jsoup으로 연결 [jsoup은 해당 url과 연결]
-        Connection conn = Jsoup.connect(url);
+        Connection conn = Jsoup.connect(weatherurl);
         try{
             // 3. 해당 url 객체로 가져오기
             Document document = conn.get();
             // 4. 특정 태그 호출
-            Element element = document.getElementsByTag("body").first();
-            // 5. 확인
-            System.out.println(element);
+            String 지역명 = document.getElementsByClass("tit_info").first().text();
+            String 상태 = document.getElementsByClass("txt_weather").first().text();
+            Elements elements = document.getElementsByClass("desc_temp");
+            String 온도 = elements.get(2).getElementsByClass("txt_temp").first().text();
+            String 풍속 = document.getElementsByClass("dl_weather").get(0).text();
+            String 습도 = document.getElementsByClass("dl_weather").get(1).text();
+            String 미세먼지 = document.getElementsByClass("dl_weather").get(2).text();
+
+            // 5. 크롤링된 정보를 json에 담기 [js에서 사용하기 위해서]
+            JSONObject object = new JSONObject();
+            object.put("지역명",지역명);
+            object.put("상태",상태);
+            object.put("온도",온도);
+            object.put("풍속",풍속);
+            object.put("습도",습도);
+            object.put("미세먼지",미세먼지);
+            return object;
         }catch(Exception e){
-            System.out.println(e);
+            System.out.println("날씨 크롤링 오류 : "+e);
         }
+        return null;
     }
 
     // 2. 부동산 관련 뉴스 크롤링
-    public void getnews(){
-        System.out.println("부동산 관련 뉴스 크롤링 실행");
+    public JSONArray getnews(){
+        String newsurl = "https://realestate.daum.net/news/all";
+        Connection conn = Jsoup.connect(newsurl);
+        try{
+            JSONArray jsonArray = new JSONArray();
+            Document document = conn.get();
+            Elements elements = document.getElementsByClass("list_live");
+            Elements litags = elements.first().getElementsByTag("li");
+            for(int i=0; i<litags.size(); i++){
+                JSONObject object = new JSONObject();
+                object.put("news_title",litags.get(i).getElementsByClass("tit").first().text());
+                object.put("news_content",litags.get(i).getElementsByClass("desc").first().getElementsByClass("link").first().text());
+                object.put("news_info",litags.get(i).getElementsByClass("desc").first().getElementsByClass("info").first().text());
+                object.put("news_img",litags.get(i).getElementsByClass("frame_thumb").attr("src"));
+                object.put("news_link","https://realestate.daum.net"+litags.get(i).getElementsByClass("link_thumb").attr("href"));
+                jsonArray.put(object);
+            }
+            System.out.println(jsonArray.toString());
+            return jsonArray;
+
+        }catch(Exception e){
+            System.out.println("뉴스 크롤링 오류 : "+e);
+        }
+        return null;
     }
 
     // 3. 부동산 시세 크롤링
