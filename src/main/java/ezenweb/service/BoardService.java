@@ -323,7 +323,6 @@ public class BoardService {
                 object.put("news_link","https://realestate.daum.net"+litags.get(i).getElementsByClass("link_thumb").attr("href"));
                 jsonArray.put(object);
             }
-            System.out.println(jsonArray.toString());
             return jsonArray;
 
         }catch(Exception e){

@@ -21,6 +21,7 @@
 
         <ul class="nav">
             <!-- 권한 상관 없이 보이는 메뉴 -->
+            <li class="nav-item"><a class="nav-link text-dark" href="/board/list" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling">채팅방</a></li>
             <li class="nav-item"><a class="nav-link text-dark" href="/room/list">방찾기</a></li>
             <li class="nav-item"><a class="nav-link text-dark" href="/board/list">커뮤니티</a></li>
             <!-- 권한이 없으면 보이는 메뉴 -->
@@ -36,6 +37,28 @@
         </ul>
 
     </header>
+
+    <!-- 채팅방 사이드바(오프캔버스) -->
+
+
+    <div class="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasScrollingLabel">자유 채팅방</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div id="contentbox">   <!-- 채팅 내용 출력 box -->
+
+            </div>
+            <div class="input-group my-3">   <!-- 채팅 내용 입력 box -->
+                <input class="form-control" type="text" id="msg">
+                <button class="btn btn-outline-secondary" id="sendbtn">전송</button>
+            </div>
+        </div>
+    </div>
+
+
+
 
 
 
