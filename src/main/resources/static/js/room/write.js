@@ -13,7 +13,7 @@ function save(){
         contentType : false,    // 첨부파일 전송시 사용되는 속성
         processData : false,    // 첨부파일 전송시 사용되는 속성
         success: function(re){
-            alert("java와 통신 성공");
+            alert("등록 완료");;
         }
 
     })

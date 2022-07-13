@@ -28,15 +28,25 @@
             <li sec:authorize="isAnonymous()" class="nav-item"><a class="nav-link text-dark" href="/member/signup">회원가입</a></li>
             <li sec:authorize="isAnonymous()" class="nav-item"><a class="nav-link text-dark" href="/member/login">로그인</a></li>
             <!-- 권한이 있으면 보이는 메뉴 -->
+            <span sec:authorize="isAuthenticated()" id="loginmidbox" sec:authentication="name"></span><span sec:authorize="isAuthenticated()">님 안녕하세요.</span>
             <li sec:authorize="isAuthenticated()" class="nav-item"><a class="nav-link text-dark" href="/member/logout">로그아웃</a></li>
             <li sec:authorize="isAuthenticated()" class="nav-item"><a class="nav-link text-dark" href="/member/update">회원정보수정</a></li>
             <li sec:authorize="isAuthenticated()" class="nav-item"><a class="nav-link text-dark" href="/member/myroom">내가등록한룸</a></li>
             <li sec:authorize="isAuthenticated()" class="nav-item"><a class="nav-link text-dark" href="/room/write">방등록</a></li>
+            <li sec:authorize="isAuthenticated()" class="nav-item">
+                <a type="button" class="nav-link text-dark position-relative" href="/member/message">
+                    쪽지
+                    <span id="msgisreadbox" class="position-absolute top-10 start-90 translate-middle badge rounded-pill bg-danger"></span>
+                </a>
+            </li>
             <!-- 특정권한이 있으면 보이는 메뉴 -->
             <li sec:authorize="hasRole('ADMIN')" class="nav-item"><a class="nav-link text-dark" href="/">관리자모드</a></li>
         </ul>
 
     </header>
+
+
+
 
     <!-- 채팅방 사이드바(오프캔버스) -->
 
@@ -92,6 +102,7 @@
     <script src="//dapi.kakao.com/v2/maps/sdk.js?appkey=74b235a8aa53340a6b12d90870ab905f&libraries=services,clusterer"></script>
 
     <script src="/js/header.js"></script>
+
 
 
 </body>

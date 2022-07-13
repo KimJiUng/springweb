@@ -14,9 +14,16 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private WebSocketHandler webSocketHandler;
 
+    @Autowired
+    private MsgWebSocketHandler msgWebSocketHandler;
+
     @Override   // 웹소켓
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler,"ws/chat");
+        registry.addHandler(webSocketHandler,"ws/chat").setAllowedOrigins("*")
+                .addHandler(msgWebSocketHandler,"ws/message/*").setAllowedOrigins("*");
                         // 사용자정의 웹소켓 핸들러, 핸들러 접속경로 , 핸들러로 들어올 수 있는 도메인 제한
     }
+
+
+
 }

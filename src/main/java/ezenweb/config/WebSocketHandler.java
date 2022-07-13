@@ -28,6 +28,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override   // 2. 웹소켓과 연결 종료되었을때 메소드 재정의
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         System.out.println("서버에서 나갔습니다. :  "+session);
+
         // 3. 웹소켓과 접속이 종료되었을때 종료된 세션 지우기
         list.remove(session);
     }

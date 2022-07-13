@@ -23,10 +23,13 @@ import java.util.*;
 public class RoomService {
 
     @Autowired
-    RoomRepository roomRepository;
+    private RoomRepository roomRepository;
 
     @Autowired
-    RoomimgRepository roomimgRepository;
+    private RoomimgRepository roomimgRepository;
+
+    @Autowired
+    private MemberService memberService;
 
     @Autowired
     private HttpServletRequest request;
@@ -38,12 +41,16 @@ public class RoomService {
     @Transactional
     public boolean room_save(RoomDto roomDto){
 
-        // 현재 로그인된 세션 호출
-        LoginDto loginDto = (LoginDto)request.getSession().getAttribute("login");
+        String mid = memberService.getloginid();
+
         // 현재 로그인된 회원의 엔티티 찾기
-        MemberEntity memberEntity = memberRepository.findById(loginDto.getMno()).get();
-       // 1. dto->entity  [ dto는 DB에 저장불가 ]
-       RoomEntity roomEntity = roomDto.toentity();
+        Optional<MemberEntity> optional = memberRepository.findBymid(mid);
+        if(!optional.isPresent()){
+            return false;
+        }
+        MemberEntity memberEntity = optional.get();
+        // 1. dto->entity  [ dto는 DB에 저장불가 ]
+        RoomEntity roomEntity = roomDto.toentity();
 
        // 2. 저장 [우선적으로 룸 DB에 저장. pk 생성]
        roomRepository.save(roomEntity);
@@ -68,7 +75,10 @@ public class RoomService {
                     // UUID와 파일명 구분 _ 사용 [만약에 파일명에 _ 존재하면 문제발생 -> 파일명 _ 없애기]
 
                 // 2. 경로설정
+                    // 1. 프로젝트 내 이미지 저장
                 String dir = "D:\\spring\\springweb\\src\\main\\resources\\static\\upload\\";
+                    // 2. 서버에 이미지 저장 [ 다시 빌드 x = 스프링부트는 내장서버이기 때문에 = 서버 재시작시 초기화 ]
+                //String dir = "D:\\spring\\springweb\\build\\resources\\main\\static\\upload";
                 String filepath = dir + uuidfile;
                                     // .getOriginalFilename() : 실제 첨부파일 이름
 
@@ -206,6 +216,7 @@ public class RoomService {
             if(rno == roomimgEntity.getRoomEntity().getRno()){
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("rimg",roomimgEntity.getRimg());
+                jsonObject.put("mid",roomimgEntity.getRoomEntity().getMemberEntity().getMid());
                 jsonArray.put(jsonObject);
             }
         }
@@ -216,14 +227,19 @@ public class RoomService {
 
     // 내가 등록한 룸 리스트 호출
     public JSONArray myroom_list() {
-        LoginDto loginDto = (LoginDto)request.getSession().getAttribute("login");
+        String mid = memberService.getloginid();
+        Optional<MemberEntity> optional = memberRepository.findBymid(mid);
+        if(!optional.isPresent()){
+            return null;
+        }
+        MemberEntity memberEntity = optional.get();
         JSONArray jsonArray = new JSONArray();
         // 1. 모든 엔티티 꺼내오기
         List<RoomEntity> roomEntityList = roomRepository.findAll();
         // 2. 엔티티 -> Map 변환
         for(RoomEntity roomEntity : roomEntityList){    // 리스트에서 엔티티 하나씩 꺼내오기
 
-            if(loginDto.getMno() == roomEntity.getMemberEntity().getMno() ) {
+            if(memberEntity.getMno() == roomEntity.getMemberEntity().getMno() ) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("rno", roomEntity.getRno() + "");
                 jsonObject.put("rtitle", roomEntity.getRtitle());

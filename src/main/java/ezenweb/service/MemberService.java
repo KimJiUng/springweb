@@ -2,13 +2,19 @@ package ezenweb.service;
 
 import ezenweb.domain.member.MemberEntity;
 import ezenweb.domain.member.MemberRepository;
+import ezenweb.domain.message.MessageEntity;
+import ezenweb.domain.message.MessageRepository;
 import ezenweb.dto.LoginDto;
 import ezenweb.dto.MemberDto;
 import ezenweb.dto.OauthDto;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +30,7 @@ import org.springframework.stereotype.Service;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import org.springframework.mail.javamail.JavaMailSender;
@@ -47,15 +54,15 @@ public class MemberService implements UserDetailsService, OAuth2UserService<OAut
                                     // Optional 클래스 [null 오류 방지]
                                     // 1. optional.isPresent() : null 아니면
                                     // 2. optional.orElse(데이터) : 만약에 optional 객체가 비어있으면 반환할 데이터
-        // 2. 찾은 회원엔티티의 권한[키]을 리스트에 담기
-        List<GrantedAuthority> authorityList = new ArrayList<>();
-                // GrantedAuthority : 부여된 인증의 클래스
-                // List<GrantedAuthority> : 부여된 인증들을 모아두기
-        authorityList.add(new SimpleGrantedAuthority(memberEntity.getrolekey() ) );
-                // 리스트에 인증된 엔티티의 키를 보관
-        System.out.println("권한 키 : "+ memberEntity.getrolekey());
+//        // 2. 찾은 회원엔티티의 권한[키]을 리스트에 담기
+//        List<GrantedAuthority> authorityList = new ArrayList<>();
+//                // GrantedAuthority : 부여된 인증의 클래스
+//                // List<GrantedAuthority> : 부여된 인증들을 모아두기
+//        authorityList.add(new SimpleGrantedAuthority(memberEntity.getrolekey() ) );
+//                // 리스트에 인증된 엔티티의 키를 보관
+
         // UserDetails -> 인증되면 세션 부여
-        return new LoginDto(memberEntity, authorityList); // 회원 엔티티, 인증된 리스트 세션 부여
+        return new LoginDto(memberEntity,Collections.singleton(new SimpleGrantedAuthority(memberEntity.getrolekey()))); // 회원 엔티티, 인증된 리스트 세션 부여
 
     }
 
@@ -77,31 +84,26 @@ public class MemberService implements UserDetailsService, OAuth2UserService<OAut
                     .getUserInfoEndpoint()
                     .getUserNameAttributeName();
 
-            // 확인
-            System.out.println(  "클라이언트(개발자)가 등록 이름 :   " + registrationId   );
-            System.out.println(  "회원 정보(JSON) 호출시 사용되는 키 이름 :   " + userNameAttributeName   );
-            System.out.println(  "회원 인증(로그인) 결과 내용  : " + oAuth2User.getAttributes() );
-
             // oauth2 정보 -> Dto -> entitiy -> db저장
             OauthDto oauthDto = OauthDto.of(  registrationId ,  userNameAttributeName  ,  oAuth2User.getAttributes()  );
-
-            System.out.println( "oauthDto 확인 : " + oauthDto.toString() );
 
             //  1. 이메일로 엔티티호출
             Optional<MemberEntity> optional
                     =  memberRepository.findBymemail( oauthDto.getMemail() );
             // 2. 만약에 엔티티가 없으면
+            MemberEntity memberEntity = null;
+
             if( !optional.isPresent() ){
-                memberRepository.save( oauthDto.toentity() );  // entity 저장
+                memberEntity = oauthDto.toentity();
+                memberRepository.save( memberEntity );  // entity 저장
+            }else{
+                memberEntity = optional.get();
             }
 
             // 반환타입 DefaultOAuth2User ( 권한(role)명 , 회원인증정보 , 회원정보 호출키 )
             // DefaultOAuth2User , UserDetails : 반환시 인증세션 자동 부여 [ SimpleGrantedAuthority : (권한) 필수~  ]
-            return new DefaultOAuth2User(
-                    Collections.singleton(new SimpleGrantedAuthority("ROLE_MEMBER")),
-                    oAuth2User.getAttributes() ,
-                    userNameAttributeName
-            );
+
+            return new LoginDto(memberEntity,Collections.singleton(new SimpleGrantedAuthority(memberEntity.getrolekey())));
         }catch (Exception e){e.printStackTrace();}
         return null;
     }
@@ -315,6 +317,129 @@ public class MemberService implements UserDetailsService, OAuth2UserService<OAut
         }
         return 0;
     }
+
+    // 로그인(인증)된 회원의 아이디 꺼내오기 메소드
+    public String getloginid(){
+        // 1. 인증 객체 호출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 2. 인증 정보 객체 호출
+        Object principal = authentication.getPrincipal();
+        if(principal.equals("anonymousUser")){  // 로그인 안 된 상태
+            return null;
+        }else{  // 로그인 된 상태
+            LoginDto loginDto = (LoginDto) principal;
+            return loginDto.getMid();
+        }
+    }
+
+
+    ///////////////////////////////////////// 쪽지 관련 //////////////////////////////////////////
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    // 1. 쪽지 전송 메소드
+    @Transactional
+    public boolean messagesend(JSONObject object){
+        // 1. JSON 정보 호출
+        String from = object.getString("from");
+        String to = object.getString("to");
+        String msg = object.getString("msg");
+        // 2. 각 회원들의 엔티티 찾기
+        Optional<MemberEntity> fromoptional = memberRepository.findBymid(from);
+        if(!fromoptional.isPresent()){return false;}
+        Optional<MemberEntity> tooptional = memberRepository.findBymid(to);
+        if(!tooptional.isPresent()){return false;}
+        MemberEntity fromentity = fromoptional.get();
+        MemberEntity toentity = tooptional.get();
+        // 3. 메세지 엔티티 생성
+        MessageEntity messageEntity = MessageEntity.builder()
+                .msg(msg)
+                .fromentity(fromentity)
+                .toentity(toentity)
+                .build();
+        // 4. 메세지 세이브
+        messageRepository.save(messageEntity);
+        // 5. 각 회원에 메세지 fk 주입
+        fromentity.getFromentityList().add(messageEntity);
+        toentity.getToentityList().add(messageEntity);
+        return true;
+    }
+    // 2. 안읽은 쪽지 개수 카운트 메소드
+    public Integer getisread(){
+        // 1. 로그인(인증)된 회원의 아이디
+        String mid = getloginid();
+        if(mid == null){return -1;}
+        int mno = memberRepository.findBymid(mid).get().getMno();
+        return messageRepository.getisread(mno);
+    }
+
+    // 3. 본인이 보낸 메세지 리스트 호출
+    public JSONArray getfrommsglist(){
+        String mid = getloginid();
+        if(mid == null){return null;}
+        List<MessageEntity> messageEntityList = memberRepository.findBymid(mid).get().getFromentityList();
+        JSONArray jsonArray = new JSONArray();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        for(MessageEntity entity : messageEntityList){
+            JSONObject object = new JSONObject();
+            object.put("msg",entity.getMsg());
+            object.put("to",entity.getToentity().getMid());
+            object.put("msgno",entity.getMsgno());
+            object.put("date",formatter.format(entity.getCreatedate()));
+            object.put("isread",entity.isIsread());
+            jsonArray.put(object);
+        }
+        return jsonArray;
+    }
+
+    // 4. 본인이 받은 메세지 리스트 호출
+    public JSONArray gettomsglist(){
+        String mid = getloginid();
+        if(mid == null){return null;}
+        List<MessageEntity> messageEntityList =
+                memberRepository.findBymid(mid).get().getToentityList();
+        JSONArray jsonArray = new JSONArray();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        for(MessageEntity entity : messageEntityList){
+            JSONObject object = new JSONObject();
+            object.put("msg",entity.getMsg());
+            object.put("from",entity.getFromentity().getMid());
+            object.put("msgno",entity.getMsgno());
+            object.put("date",formatter.format(entity.getCreatedate()));
+            object.put("isread",entity.isIsread());
+            jsonArray.put(object);
+        }
+        return jsonArray;
+    }
+
+
+    // 읽음 처리 메소드 [수정]
+    @Transactional
+    public boolean isread(int msgno){
+        System.out.println("1231231212133212");
+        Optional<MessageEntity> optional = messageRepository.findById(msgno);
+        if(!optional.isPresent()){ return false;}
+        optional.get().setIsread(true);
+        return true;
+    }
+
+    // 선택된 메세지 삭제 처리 메소드
+    @Transactional
+    public boolean msgdelete(List<Integer> deletelist){
+        if(deletelist.size()==0){return false;}
+        for(int i=0; i<deletelist.size(); i++){
+            Optional<MessageEntity> optional = messageRepository.findById(deletelist.get(i));
+            if(optional.isPresent()){
+                messageRepository.delete(optional.get());
+            }else{
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
 
 
 

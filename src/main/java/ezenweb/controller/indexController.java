@@ -17,7 +17,6 @@ public class indexController {
 
     @GetMapping("/")    // '/' : 최상위 경로
     public String index(Model model){
-
         // 1. 날씨 크롤링
         boardService.getweather();
         // 2. 부동산 관련 뉴스 크롤링

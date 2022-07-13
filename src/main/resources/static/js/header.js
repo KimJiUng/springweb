@@ -1,3 +1,22 @@
+getisread();
+
+// 안읽은 쪽지 개수 체크 메소드
+function getisread(){
+    $.ajax({
+        url : "/member/getisread",
+        success : function(object){
+            if(object>99){
+                $("#msgisreadbox").html("99+");
+            }else if(object==0){
+                $("#msgisreadbox").html("");
+            }else{
+                $("#msgisreadbox").html(object);
+            }
+
+        }
+    });
+}
+
 
 getweather();
 
@@ -12,6 +31,52 @@ function getweather(){
     });
 
 }
+// 쪽지 메소드
+
+$(document).ready(function(){
+
+    let mid = $("#loginmidbox").html();
+    if(mid=="anonymousUser"){
+        return;
+    }
+    // 문의하기 버튼을 클릭했을때
+    $("#roommsgbtn").click(function(){
+        let from = mid; // 로그인 된 회원
+        let to = $("#roomwriter").val(); //
+        let msg = $("#roommsginput").val(); // 보낼 메세지 내용
+        let jsonmsg = { "from" : from, "to" : to, "msg" :msg }
+        send(jsonmsg);
+    });
+
+
+    // 1. 웹소켓 객체 생성
+    let msgwebsocket = new WebSocket("ws://localhost:8081/ws/message/"+mid);
+    // 2. 웹소켓객체에 구현된 메소드 저장
+    msgwebsocket.onopen = onOpen2;
+    msgwebsocket.onclose = onClose2;
+    msgwebsocket.onmessage = onMessage2;
+    function onOpen2(){
+
+    }
+
+    function onClose2(){
+
+    }
+
+    function onMessage2(){
+        getisread();
+    }
+    function send(jsonmsg){
+        msgwebsocket.send(JSON.stringify(jsonmsg));
+    }
+    // 3. 각 메소드 구현 [onOpen onClose onMessage]
+
+
+
+});
+
+
+
 
 
 // 채팅 메소드 - js 열리면 실행되는 메소드

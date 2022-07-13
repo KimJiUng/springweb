@@ -45,6 +45,9 @@ public class BoardService {
     private CategoryRepository categoryRepository;
 
     @Autowired
+    private MemberService memberService;
+
+    @Autowired
     private HttpServletRequest request;
 
     @Autowired
@@ -54,33 +57,34 @@ public class BoardService {
     @Transactional
     public boolean save(BoardDto boardDto){
 
-        // 1. 세션 호출 [시큐리티 사용시 -> 세션 x -> 인증세션(UserDetails vs DefaultOAuth2User) ]
-        // LoginDto loginDto= (LoginDto)request.getSession().getAttribute("login");
-        // 1. 인증된 세션 호출 [시큐리티내 인증 결과 호출]
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // 2. 인증 정보 가져오기
-        Object principal = authentication.getPrincipal();  // Principal : 인증 정보
-        // 3. 일반회원 : UserDetails / oauth회원 : DefaultOAuth2User 구분
-            // java 문법 : 자식객체 instanceof 부모클래스명 : 상속여부 확인 키워드
-        String mid = null;
-        if(principal instanceof UserDetails){   // 인증정보의 타입이 UserDetails 이면 [일반회원 검증]
-            mid = ((UserDetails) principal).getUsername();
-            System.out.println("일반 회원으로 글쓰기 ~"+principal.toString());
-        }else if(principal instanceof DefaultOAuth2User){   // 인증정보의 타입이 DefaultOAuth2User 이면 [oauth2회원 검증]
-            System.out.println("oauth회원으로 글쓰기 ~"+principal.toString());
-            Map<String,Object> map =((DefaultOAuth2User) principal).getAttributes();
-
-            if(map.get("response")!=null){  // 1. 네이버일 경우 [Attributes에 response라는 키가 존재하면]
-                Map<String,Object> map2 = (Map<String, Object>) map.get("response");
-                mid = map2.get("email").toString().split("@")[0];   // 아이디만 추출
-            }else{  // 2. 카카오일 경우
-                Map<String,Object> map2 = (Map<String, Object>) map.get("kakao_account");
-                mid = map2.get("email").toString().split("@")[0];   // 아이디만 추출
-            }
-
-        }else{  // 인증 정보가 없을경우
-            return false;
-        }
+//        // 1. 세션 호출 [시큐리티 사용시 -> 세션 x -> 인증세션(UserDetails vs DefaultOAuth2User) ]
+//        // LoginDto loginDto= (LoginDto)request.getSession().getAttribute("login");
+//        // 1. 인증된 세션 호출 [시큐리티내 인증 결과 호출]
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        // 2. 인증 정보 가져오기
+//        Object principal = authentication.getPrincipal();  // Principal : 인증 정보
+//        // 3. 일반회원 : UserDetails / oauth회원 : DefaultOAuth2User 구분
+//            // java 문법 : 자식객체 instanceof 부모클래스명 : 상속여부 확인 키워드
+//        String mid = null;
+//        if(principal instanceof UserDetails){   // 인증정보의 타입이 UserDetails 이면 [일반회원 검증]
+//            mid = ((UserDetails) principal).getUsername();
+//            System.out.println("일반 회원으로 글쓰기 ~"+principal.toString());
+//        }else if(principal instanceof DefaultOAuth2User){   // 인증정보의 타입이 DefaultOAuth2User 이면 [oauth2회원 검증]
+//            System.out.println("oauth회원으로 글쓰기 ~"+principal.toString());
+//            Map<String,Object> map =((DefaultOAuth2User) principal).getAttributes();
+//
+//            if(map.get("response")!=null){  // 1. 네이버일 경우 [Attributes에 response라는 키가 존재하면]
+//                Map<String,Object> map2 = (Map<String, Object>) map.get("response");
+//                mid = map2.get("email").toString().split("@")[0];   // 아이디만 추출
+//            }else{  // 2. 카카오일 경우
+//                Map<String,Object> map2 = (Map<String, Object>) map.get("kakao_account");
+//                mid = map2.get("email").toString().split("@")[0];   // 아이디만 추출
+//            }
+//
+//        }else{  // 인증 정보가 없을경우
+//            return false;
+//        }
+        String mid = memberService.getloginid();
 
         if(mid!=null){    // 로그인 되어 있으면
             // 2. 로그인된 회원의 엔티티 찾기

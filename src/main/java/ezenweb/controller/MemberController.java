@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+
 @Controller // 템플릿 영역
 @RequestMapping("/member")
 public class MemberController {
@@ -119,5 +122,58 @@ public class MemberController {
         return memberService.mdelete(mpassword);
     }
 
+
+    ////////////////////////////////// 쪽지 관련 /////////////////////////////////
+
+    // 쪽지 페이지로 매핑
+    @GetMapping("/message")
+    public String message(){return "member/message";}
+
+    // 안읽은 메세지 처리 컨트롤
+    @GetMapping("/getisread")
+    @ResponseBody
+    public Integer getisread(){
+        return memberService.getisread();
+    }
+
+    // 보낸 메세지 리스트 호출
+    @GetMapping("/getfrommsglist")
+    public void geetfrommsglist(HttpServletResponse response){
+        try{
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(memberService.getfrommsglist());
+        }catch(Exception e){
+            System.out.println("보낸 메세지 리스트 출력 오류 : "+e);
+        }
+
+    }
+
+    // 받은 메세지 리스트 호출
+    @GetMapping("/gettomsglist")
+    public void geettomsglist(HttpServletResponse response){
+        try{
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(memberService.gettomsglist());
+        }catch(Exception e){
+            System.out.println("받은 메세지 리스트 출력 오류 : "+e);
+        }
+    }
+
+    // 메세지 읽음 처리 메소드
+    @PutMapping("/isread")
+    @ResponseBody
+    public boolean isread(@RequestParam("msgno") int msgno){
+        System.out.println(msgno);
+        return memberService.isread(msgno);
+    }
+
+    // 선택된 메세지 삭제 메소드
+    @DeleteMapping("/msgdelete")
+    @ResponseBody
+    public boolean msgdelete(@RequestBody List<Integer> deletelist){
+        return memberService.msgdelete(deletelist);
+    }
 
 }
